@@ -29,32 +29,32 @@ node("intel-102") {
   def action_inst = '_install'
   def action_make = '_make'
 
-  def std_ext = '.stdout.log'
-  def err_ext = '.stderr.log'
+  def stdout_ext = '.stdout.log'
+  def stderr_ext = '.stderr.log'
 
-  def hss_install_std_log = "${hss_dir}/" + "hss" + "${action_inst}${std_ext}"
-  def hss_install_err_log = "${hss_dir}/" + "hss" + "${action_inst}${err_ext}"
-  def hsssec_std_log = "${hss_dir}/" + "hsssec" + "${action_make}${std_ext}"
-  def hsssec_err_log = "${hss_dir}/" + "hsssec" + "${action_make}${err_ext}"
-  def hss_std_log = "${hss_dir}/" + "hss" + "${action_make}${std_ext}"
-  def hss_err_log = "${hss_dir}/" + "hss" + "${action_make}${err_ext}"
+  def hss_install_stdout_log = "${hss_dir}/" + "hss" + "${action_inst}${stdout_ext}"
+  def hss_install_stderr_log = "${hss_dir}/" + "hss" + "${action_inst}${stderr_ext}"
+  def hsssec_stdout_log = "${hss_dir}/" + "hsssec" + "${action_make}${stdout_ext}"
+  def hsssec_stderr_log = "${hss_dir}/" + "hsssec" + "${action_make}${stderr_ext}"
+  def hss_stdout_log = "${hss_dir}/" + "hss" + "${action_make}${stdout_ext}"
+  def hss_stderr_log = "${hss_dir}/" + "hss" + "${action_make}${stderr_ext}"
 
-  def dealer_install_std_log = "${sgx_dir}/" + "dealer" + "${action_inst}${std_ext}"
-  def dealer_install_err_log = "${sgx_dir}/" + "dealer" + "${action_inst}${err_ext}"
-  def dealer_std_log = "${sgx_dir}/" + "dealer" + "${action_make}${std_ext}"
-  def dealer_err_log = "${sgx_dir}/" + "dealer" + "${action_make}${err_ext}"
-  def kms_install_std_log = "${sgx_dir}/" + "kms" + "${action_inst}${std_ext}"
-  def kms_install_err_log = "${sgx_dir}/" + "kms" + "${action_inst}${err_ext}"
-  def kms_std_log = "${sgx_dir}/" + "kms" + "${action_make}${std_ext}"
-  def kms_err_log = "${sgx_dir}/" + "kms" + "${action_make}${err_ext}"
-  def router_install_std_log = "${sgx_dir}/" + "router" + "${action_inst}${std_ext}"
-  def router_install_err_log = "${sgx_dir}/" + "router" + "${action_inst}${err_ext}"
-  def util_std_log = "${sgx_dir}/" + "util" + "${action_make}${std_ext}"
-  def util_err_log = "${sgx_dir}/" + "util" + "${action_make}${err_ext}"
-  def ctf_std_log = "${sgx_dir}/" + "ctf" + "${action_make}${std_ext}"
-  def ctf_err_log = "${sgx_dir}/" + "ctf" + "${action_make}${err_ext}"
-  def cdf_std_log = "${sgx_dir}/" + "cdf" + "${action_make}${std_ext}"
-  def cdf_err_log = "${sgx_dir}/" + "cdf" + "${action_make}${err_ext}"
+  def dealer_install_stdout_log = "${sgx_dir}/" + "dealer" + "${action_inst}${stdout_ext}"
+  def dealer_install_stderr_log = "${sgx_dir}/" + "dealer" + "${action_inst}${stderr_ext}"
+  def dealer_stdout_log = "${sgx_dir}/" + "dealer" + "${action_make}${stdout_ext}"
+  def dealer_stderr_log = "${sgx_dir}/" + "dealer" + "${action_make}${stderr_ext}"
+  def kms_install_stdout_log = "${sgx_dir}/" + "kms" + "${action_inst}${stdout_ext}"
+  def kms_install_stderr_log = "${sgx_dir}/" + "kms" + "${action_inst}${stderr_ext}"
+  def kms_stdout_log = "${sgx_dir}/" + "kms" + "${action_make}${stdout_ext}"
+  def kms_stderr_log = "${sgx_dir}/" + "kms" + "${action_make}${stderr_ext}"
+  def router_install_stdout_log = "${sgx_dir}/" + "router" + "${action_inst}${stdout_ext}"
+  def router_install_stderr_log = "${sgx_dir}/" + "router" + "${action_inst}${stderr_ext}"
+  def util_stdout_log = "${sgx_dir}/" + "util" + "${action_make}${stdout_ext}"
+  def util_stderr_log = "${sgx_dir}/" + "util" + "${action_make}${stderr_ext}"
+  def ctf_stdout_log = "${sgx_dir}/" + "ctf" + "${action_make}${stdout_ext}"
+  def ctf_stderr_log = "${sgx_dir}/" + "ctf" + "${action_make}${stderr_ext}"
+  def cdf_stdout_log = "${sgx_dir}/" + "cdf" + "${action_make}${stdout_ext}"
+  def cdf_stderr_log = "${sgx_dir}/" + "cdf" + "${action_make}${stderr_ext}"
 
   timeout (60) {
     try {
@@ -103,14 +103,14 @@ node("intel-102") {
 
           waitUntil {
             hss_dealer_in_output = sh returnStdout: true, script: """
-            ssh c3po-hss1 'cd ${install_path}/c3po && ./install.sh < ${install_path}/wo-config/hss-auto-install.txt 1>${hss_install_std_log} 2>${hss_install_err_log}'
+            ssh c3po-hss1 'cd ${install_path}/c3po && ./install.sh < ${install_path}/wo-config/hss-auto-install.txt 1>${hss_install_stdout_log} 2>${hss_install_stderr_log}'
             """
             echo "${hss_dealer_in_output}"
             return true
           }
           sh returnStdout: true, script: """
-          ssh c3po-hss1 'cd ${install_path}/c3po/util && make clean && make 1>${hsssec_std_log} 2>${hsssec_err_log}'
-          ssh c3po-hss1 'cd ${install_path}/c3po/hsssec && make clean && make 1>>${hsssec_std_log} 2>>${hsssec_err_log}'
+          ssh c3po-hss1 'cd ${install_path}/c3po/util && make clean && make 1>${hsssec_stdout_log} 2>${hsssec_stderr_log}'
+          ssh c3po-hss1 'cd ${install_path}/c3po/hsssec && make clean && make 1>>${hsssec_stdout_log} 2>>${hsssec_stderr_log}'
           """
 
           waitUntil {
@@ -123,7 +123,7 @@ node("intel-102") {
             return true
           }
           sh returnStdout: true, script: """
-          ssh c3po-hss1 'cd ${install_path}/c3po/hss && make clean && make 1>${hss_std_log} 2>${hss_err_log}'
+          ssh c3po-hss1 'cd ${install_path}/c3po/hss && make clean && make 1>${hss_stdout_log} 2>${hss_stderr_log}'
           """
         }
       }
@@ -140,14 +140,14 @@ node("intel-102") {
 
           waitUntil {
             c3po_dealer_output = sh returnStdout: true, script: """
-            ssh sgx-kms-cdr 'cd ${install_path}/c3po/sgxcdr/dealer && ./install.sh < ${install_path}/wo-config/sgx-auto-install.txt 1>${dealer_install_std_log} 2>${dealer_install_err_log}'
+            ssh sgx-kms-cdr 'cd ${install_path}/c3po/sgxcdr/dealer && ./install.sh < ${install_path}/wo-config/sgx-auto-install.txt 1>${dealer_install_stdout_log} 2>${dealer_install_stderr_log}'
             ssh sgx-kms-cdr 'cp -f ${install_path}/wo-config/dealer-in.json ${install_path}/c3po/sgxcdr/dealer/conf/dealer.json'
             """
             echo "${c3po_dealer_output}"
             return true
           }
           sh returnStdout: true, script: """
-          ssh sgx-kms-cdr 'cd ${install_path}/c3po/sgxcdr/dealer && make clean && make SGX_MODE=HW SGX_DEBUG=1 1>${dealer_std_log} 2>${dealer_err_log}'
+          ssh sgx-kms-cdr 'cd ${install_path}/c3po/sgxcdr/dealer && make clean && make SGX_MODE=HW SGX_DEBUG=1 1>${dealer_stdout_log} 2>${dealer_stderr_log}'
           """
         }
 
@@ -189,14 +189,14 @@ node("intel-102") {
         timeout(5) {
           waitUntil {
             c3po_kms_output = sh returnStdout: true, script: """
-            ssh sgx-kms-cdr 'cd ${install_path}/c3po/sgxcdr/kms && ./install.sh < ${install_path}/wo-config/sgx-auto-install.txt 1>${kms_install_std_log} 2>${kms_install_err_log}'
+            ssh sgx-kms-cdr 'cd ${install_path}/c3po/sgxcdr/kms && ./install.sh < ${install_path}/wo-config/sgx-auto-install.txt 1>${kms_install_stdout_log} 2>${kms_install_stderr_log}'
             ssh sgx-kms-cdr 'cp -f ${install_path}/wo-config/kms.json ${install_path}/c3po/sgxcdr/kms/conf/kms.json'
             """
             echo "${c3po_kms_output}"
             return true
           }
           sh returnStdout: true, script: """
-          ssh sgx-kms-cdr 'cd ${install_path}/c3po/sgxcdr/kms && make clean && make SGX_MODE=HW SGX_DEBUG=1 1>${kms_std_log} 2>${kms_err_log}'
+          ssh sgx-kms-cdr 'cd ${install_path}/c3po/sgxcdr/kms && make clean && make SGX_MODE=HW SGX_DEBUG=1 1>${kms_stdout_log} 2>${kms_stderr_log}'
           """
         }
 
@@ -217,7 +217,7 @@ node("intel-102") {
         timeout(2) {
           waitUntil {
             c3po_router_output = sh returnStdout: true, script: """
-            ssh sgx-kms-cdr 'cd ${install_path}/c3po/sgxcdr/router && ./install.sh 1>${router_install_std_log} 2>${router_install_err_log}'
+            ssh sgx-kms-cdr 'cd ${install_path}/c3po/sgxcdr/router && ./install.sh 1>${router_install_stdout_log} 2>${router_install_stderr_log}'
             """
             echo "${c3po_router_output}"
             return true
@@ -233,8 +233,8 @@ node("intel-102") {
             return true
           }
           sh returnStdout: true, script: """
-          ssh sgx-kms-cdr 'cd ${install_path}/c3po/util && make clean && make 1>${util_std_log} 2>${util_err_log}'
-          ssh sgx-kms-cdr 'cd ${install_path}/c3po/ctf && mkdir logs && make clean && make 1>${ctf_std_log} 2>${ctf_err_log}'
+          ssh sgx-kms-cdr 'cd ${install_path}/c3po/util && make clean && make 1>${util_stdout_log} 2>${util_stderr_log}'
+          ssh sgx-kms-cdr 'cd ${install_path}/c3po/ctf && mkdir logs && make clean && make 1>${ctf_stdout_log} 2>${ctf_stderr_log}'
           """
           waitUntil {
             c3po_ctf_conf_output = sh returnStdout: true, script: """
@@ -254,7 +254,7 @@ node("intel-102") {
             return true
           }
           sh returnStdout: true, script: """
-          ssh sgx-kms-cdr 'cd ${install_path}/c3po/cdf && make clean && make 1>${cdf_std_log} 2>${cdf_err_log}'
+          ssh sgx-kms-cdr 'cd ${install_path}/c3po/cdf && make clean && make 1>${cdf_stdout_log} 2>${cdf_stderr_log}'
           """
           waitUntil {
             c3po_cdf_conf_output = sh returnStdout: true, script: """
@@ -313,8 +313,8 @@ node("intel-102") {
       } catch (err) {
       }
 
-      archiveArtifacts artifacts: "**/*${std_ext}", allowEmptyArchive: true
-      archiveArtifacts artifacts: "**/*${err_ext}", allowEmptyArchive: true
+      archiveArtifacts artifacts: "**/*${stdout_ext}", allowEmptyArchive: true
+      archiveArtifacts artifacts: "**/*${stderr_ext}", allowEmptyArchive: true
 
     }
     echo "RESULT: ${currentBuild.result}"

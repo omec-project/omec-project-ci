@@ -19,18 +19,18 @@ node("intel-102") {
 
   def action_inst = '_install'
 
-  def std_ext = '.stdout.log'
-  def err_ext = '.stderr.log'
+  def stdout_ext = '.stdout.log'
+  def stderr_ext = '.stderr.log'
 
-  def cp_base_std_log = "cicd_cp1" + "${action_inst}${std_ext}"
-  def cp_base_err_log = "cicd_cp1" + "${action_inst}${err_ext}"
-  def dp_base_std_log = "cicd_dp1" + "${action_inst}${std_ext}"
-  def dp_base_err_log = "cicd_dp1" + "${action_inst}${err_ext}"
+  def cp_base_stdout_log = "cicd_cp1" + "${action_inst}${stdout_ext}"
+  def cp_base_stderr_log = "cicd_cp1" + "${action_inst}${stderr_ext}"
+  def dp_base_stdout_log = "cicd_dp1" + "${action_inst}${stdout_ext}"
+  def dp_base_stderr_log = "cicd_dp1" + "${action_inst}${stderr_ext}"
 
-  def cp_std_log = "${base_log_dir}/${cp_base_std_log}"
-  def cp_err_log = "${base_log_dir}/${cp_base_err_log}"
-  def dp_std_log = "${base_log_dir}/${dp_base_std_log}"
-  def dp_err_log = "${base_log_dir}/${dp_base_err_log}"
+  def cp_stdout_log = "${base_log_dir}/${cp_base_stdout_log}"
+  def cp_stderr_log = "${base_log_dir}/${cp_base_stderr_log}"
+  def dp_stdout_log = "${base_log_dir}/${dp_base_stdout_log}"
+  def dp_stderr_log = "${base_log_dir}/${dp_base_stderr_log}"
 
   def install_path = '/home/jenkins'
   timeout (60) {
@@ -75,7 +75,7 @@ node("intel-102") {
             return true
           }
           sh returnStdout: true, script: """
-          ssh ngic-dp1 'cd ${install_path}/ngic-rtc && ./install.sh < ${install_path}/wo-config/dp-auto-install-options.txt 1>${dp_std_log} 2>${dp_err_log}'
+          ssh ngic-dp1 'cd ${install_path}/ngic-rtc && ./install.sh < ${install_path}/wo-config/dp-auto-install-options.txt 1>${dp_stdout_log} 2>${dp_stderr_log}'
           """
           sh returnStdout: true, script: """
           ssh ngic-dp1 'cd ${install_path}/ngic-rtc/dp && source ../setenv.sh && make clean && make'
@@ -101,7 +101,7 @@ node("intel-102") {
             return true
           }
           sh returnStdout: true, script: """
-          ssh ngic-cp1 'cd ${install_path}/ngic-rtc && ./install.sh < ${install_path}/wo-config/cp-auto-install-options.txt 1>${cp_std_log} 2>${cp_err_log}'
+          ssh ngic-cp1 'cd ${install_path}/ngic-rtc && ./install.sh < ${install_path}/wo-config/cp-auto-install-options.txt 1>${cp_stdout_log} 2>${cp_stderr_log}'
           """
           sh returnStdout: true, script: """
           ssh ngic-cp1 'cd ${install_path}/ngic-rtc/cp && source ../setenv.sh && make clean && make'
@@ -114,8 +114,8 @@ node("intel-102") {
     } finally {
 
       sh returnStdout: true, script: """
-      rm -f *${std_ext}
-      rm -f *${err_ext}
+      rm -f *${stdout_ext}
+      rm -f *${stderr_ext}
       """
 
       try {
@@ -131,8 +131,8 @@ node("intel-102") {
       } catch (err) {
       }
 
-      archiveArtifacts artifacts: "*${std_ext}", allowEmptyArchive: true
-      archiveArtifacts artifacts: "*${err_ext}", allowEmptyArchive: true
+      archiveArtifacts artifacts: "*${stdout_ext}", allowEmptyArchive: true
+      archiveArtifacts artifacts: "*${stderr_ext}", allowEmptyArchive: true
     }
     echo "RESULT: ${currentBuild.result}"
   }

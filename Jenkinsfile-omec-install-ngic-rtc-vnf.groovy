@@ -1,4 +1,4 @@
-// Copyright 2017-present Open Networking Foundation
+// Copyright 2019-present Open Networking Foundation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,11 +12,127 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 node("intel-102") {
-  timeout (120) {
+
+  def base_path = '/var/log/cicd'
+  def base_folder = 'install'
+  def base_log_dir = "${base_path}/${base_folder}"
+
+  def action_inst = '_install'
+
+  def std_ext = '.stdout.log'
+  def err_ext = '.stderr.log'
+
+  def cp_base_std_log = "cicd_cp1" + "${action_inst}${std_ext}"
+  def cp_base_err_log = "cicd_cp1" + "${action_inst}${err_ext}"
+  def dp_base_std_log = "cicd_dp1" + "${action_inst}${std_ext}"
+  def dp_base_err_log = "cicd_dp1" + "${action_inst}${err_ext}"
+
+  def cp_std_log = "${base_log_dir}/${cp_base_std_log}"
+  def cp_err_log = "${base_log_dir}/${cp_base_err_log}"
+  def dp_std_log = "${base_log_dir}/${dp_base_std_log}"
+  def dp_err_log = "${base_log_dir}/${dp_base_err_log}"
+
+  def install_path = '/home/jenkins'
+  timeout (60) {
     try {
+      stage("VMs check") {
+        timeout(1) {
+          waitUntil {
+            running_vms = sh returnStdout: true, script: """
+            virsh list --all
+            """
+            echo "Running VMs: ${running_vms}"
+            return true
+          }
+        }
+        timeout(1) {
+          waitUntil {
+            running_vms = sh returnStdout: true, script: """
+            virsh list --all | grep "ngic-cp1\\|ngic-dp1" | grep -i running | wc -l
+            """
+            return running_vms.toInteger() == 2
+          }
+        }
+      }
+      stage("Install DP") {
+        timeout(20) {
+          sh returnStdout: true, script: """
+          ssh ngic-dp1 'rm -fr ${base_log_dir}/*'
+          ssh ngic-dp1 'if pgrep -f [n]gic_dataplane; then pkill -f [n]gic_dataplane; fi'
+          """
+          waitUntil {
+            ngic_dp1_output = sh returnStdout: true, script: """
+            ssh ngic-dp1 'cd ${install_path} && rm -rf ngic-rtc && git clone https://github.com/omec-project/ngic-rtc.git'
+
+            ssh ngic-dp1 'cp -f ${install_path}/wo-config/dp_config.cfg ${install_path}/ngic-rtc/config/dp_config.cfg'
+            ssh ngic-dp1 'cp -f ${install_path}/wo-config/interface.cfg ${install_path}/ngic-rtc/config/interface.cfg'
+            ssh ngic-dp1 'cp -f ${install_path}/wo-config/udp-ng-core_cfg.mk ${install_path}/ngic-rtc/config/ng-core_cfg.mk'
+            ssh ngic-dp1 'cp -f ${install_path}/wo-config/static_arp.cfg ${install_path}/ngic-rtc/config/static_arp.cfg'
+            ssh ngic-dp1 'cp -f ${install_path}/wo-config/kni_Makefile ${install_path}/ngic-rtc/dp/Makefile'
+
+            """
+            echo "${ngic_dp1_output}"
+            return true
+          }
+          sh returnStdout: true, script: """
+          ssh ngic-dp1 'cd ${install_path}/ngic-rtc && ./install.sh < ${install_path}/wo-config/dp-auto-install-options.txt 1>${dp_std_log} 2>${dp_err_log}'
+          """
+          sh returnStdout: true, script: """
+          ssh ngic-dp1 'cd ${install_path}/ngic-rtc/dp && source ../setenv.sh && make clean && make'
+          """
+        }
+      }
+      stage("Install CP") {
+        timeout(10) {
+          sh returnStdout: true, script: """
+          ssh ngic-cp1 'rm -fr ${base_log_dir}/*'
+          ssh ngic-cp1 'if pgrep -f [n]gic_controlplane; then pkill -f [n]gic_controlplane; fi'
+          """
+          waitUntil {
+            ngic_cp1_output = sh returnStdout: true, script: """
+            ssh ngic-cp1 'cd ${install_path} && rm -rf ngic-rtc && git clone https://github.com/omec-project/ngic-rtc.git'
+
+            ssh ngic-cp1 'cp -f ${install_path}/wo-config/cp_config.cfg ${install_path}/ngic-rtc/config/cp_config.cfg'
+            ssh ngic-cp1 'cp -f ${install_path}/wo-config/interface.cfg ${install_path}/ngic-rtc/config/interface.cfg'
+            ssh ngic-cp1 'cp -f ${install_path}/wo-config/ng-core_cfg.mk ${install_path}/ngic-rtc/config/ng-core_cfg.mk'
+
+            """
+            echo "${ngic_cp1_output}"
+            return true
+          }
+          sh returnStdout: true, script: """
+          ssh ngic-cp1 'cd ${install_path}/ngic-rtc && ./install.sh < ${install_path}/wo-config/cp-auto-install-options.txt 1>${cp_std_log} 2>${cp_err_log}'
+          """
+          sh returnStdout: true, script: """
+          ssh ngic-cp1 'cd ${install_path}/ngic-rtc/cp && source ../setenv.sh && make clean && make'
+          """
+        }
+      }
       currentBuild.result = 'SUCCESS'
     } catch (err) {
       currentBuild.result = 'FAILURE'
+    } finally {
+
+      sh returnStdout: true, script: """
+      rm -f *${std_ext}
+      rm -f *${err_ext}
+      """
+
+      try {
+        sh returnStdout: true, script: """
+        scp ngic-cp1:${base_log_dir}/* .
+        """
+      } catch (err) {
+      }
+      try {
+        sh returnStdout: true, script: """
+        scp ngic-dp1:${base_log_dir}/* .
+        """
+      } catch (err) {
+      }
+
+      archiveArtifacts artifacts: "*${std_ext}", allowEmptyArchive: true
+      archiveArtifacts artifacts: "*${err_ext}", allowEmptyArchive: true
     }
     echo "RESULT: ${currentBuild.result}"
   }

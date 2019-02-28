@@ -1,4 +1,4 @@
-// Copyright 2017-present Open Networking Foundation
+// Copyright 2019-present Open Networking Foundation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,11 +12,95 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 node("intel-102") {
-  timeout (120) {
+
+ def install_path = '/home/jenkins'
+
+  def base_path = '/var/log/cicd'
+  def base_folder = 'install'
+  def base_log_dir = "${base_path}/${base_folder}"
+
+  def action_make = '_make'
+
+  def std_ext = '.stdout.log'
+  def err_ext = '.stderr.log'
+
+  def mme_base_std_log = "cicd_openmme" + "${action_make}${std_ext}"
+  def mme_base_err_log = "cicd_openmme" + "${action_make}${err_ext}"
+
+  def mme_std_log = "${base_log_dir}/${mme_base_std_log}"
+  def mme_err_log = "${base_log_dir}/${mme_base_err_log}"
+
+  timeout (60) {
     try {
-      currentBuild.result = 'SUCCESS'
+      stage("VMs check") {
+        timeout(1) {
+          waitUntil {
+            running_vms = sh returnStdout: true, script: """
+            virsh list --all
+            """
+            echo "Running VMs: ${running_vms}"
+            return true
+          }
+        }
+        timeout(1) {
+          waitUntil {
+            running_vms = sh returnStdout: true, script: """
+            virsh list --all | grep c3po-mme1 | grep -i running | wc -l
+            """
+            return running_vms.toInteger() == 1
+          }
+        }
+      }
+      stage("Install MME") {
+        timeout(10) {
+          sh returnStdout: true, script: """
+          ssh c3po-mme1 'rm -fr ${base_log_dir}/*'
+          ssh c3po-mme1 'if pgrep -f [m]me-app; then pkill -f [m]me-app; fi'
+          ssh c3po-mme1 'if pgrep -f [s]1ap-app; then pkill -f [s]1ap-app; fi'
+          ssh c3po-mme1 'if pgrep -f [s]11-app; then pkill -f [s]11-app; fi'
+          ssh c3po-mme1 'if pgrep -f [s]6a-app; then pkill -f [s]6a-app; fi'
+          """
+          waitUntil {
+            c3po_mme1_output = sh returnStdout: true, script: """
+            ssh c3po-mme1 '
+                cd ${install_path}/ && rm -rf openmme && git clone https://github.com/omec-project/openmme.git
+
+                cp -f ${install_path}/wo-config/mme.json    ${install_path}/openmme/src/mme-app/conf/mme.json
+                cp -f ${install_path}/wo-config/s1ap.json   ${install_path}/openmme/src/s1ap/conf/s1ap.json
+                cp -f ${install_path}/wo-config/s11.json    ${install_path}/openmme/src/s11/conf/s11.json
+                cp -f ${install_path}/wo-config/s6a.json    ${install_path}/openmme/src/s6a/conf/s6a.json
+                cp -f ${install_path}/wo-config/s6a_fd.conf ${install_path}/openmme/src/s6a/conf/s6a_fd.conf
+
+                cp ${install_path}/openmme/src/mme-app/conf/*.pem ${install_path}/openmme/src/s6a/conf/
+            '
+            """
+            echo "${c3po_mme1_output}"
+            return true
+          }
+          sh returnStdout: true, script: """
+          ssh c3po-mme1 'cd ${install_path}/openmme && make clean && make 1>${mme_std_log} 2>${mme_err_log}'
+          """
+        }
+      }
+    currentBuild.result = 'SUCCESS'
     } catch (err) {
       currentBuild.result = 'FAILURE'
+    } finally {
+
+      sh returnStdout: true, script: """
+      rm -f *${std_ext}
+      rm -f *${err_ext}
+      """
+
+      try {
+        sh returnStdout: true, script: """
+        scp c3po-mme1:${base_log_dir}/* .
+        """
+      } catch (err) {
+      }
+
+      archiveArtifacts artifacts: "*${std_ext}", allowEmptyArchive: true
+      archiveArtifacts artifacts: "*${err_ext}", allowEmptyArchive: true
     }
     echo "RESULT: ${currentBuild.result}"
   }

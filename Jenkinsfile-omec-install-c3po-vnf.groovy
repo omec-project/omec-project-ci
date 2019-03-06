@@ -81,18 +81,24 @@ node("intel-102") {
             return running_vms.toInteger() == 1
           }
         }
+        // Clean all logs
+        sh returnStdout: true, script: """
+        ssh c3po-hss1 '
+            if [ ! -d "${hss_dir}" ]; then mkdir -p ${hss_dir}; fi
+            rm -fr ${hss_dir}/*
+            '
+        """
+        sh returnStdout: true, script: """
+        ssh sgx-kms-cdr '
+            if [ ! -d "${sgx_dir}" ]; then mkdir -p ${sgx_dir}; fi
+            rm -fr ${sgx_dir}/*
+            '
+        """
       }
 
       stage("clone c3po for HSS") {
         timeout(20) {
-
-          //TODO: uncomment
-          //kill process? ssh c3po-hss1 'if pgrep -f [h]ss; then pkill -f [h]ss; fi'
-          sh returnStdout: true, script: """
-          ssh c3po-hss1 'rm -fr ${hss_dir}/*'
-          ssh sgx-kms-cdr 'rm -fr ${sgx_dir}/*'
-          """
-
+          sh returnStdout: true, script: """ssh c3po-hss1 'if pgrep -f [h]ss; then pkill -f [h]ss; fi'"""
           waitUntil {
             hss_c3po_clone_output = sh returnStdout: true, script: """
             ssh c3po-hss1 'cd ${install_path} && rm -rf c3po && git clone https://github.com/omec-project/c3po.git'
@@ -129,12 +135,28 @@ node("intel-102") {
       }
       stage("clone c3po for SGX") {
         timeout(20) {
-          //TODO: kill processes?
+          sh returnStdout: true, script: """ssh sgx-kms-cdr 'if pgrep ctf; then pkill ctf; fi'"""
+          sh returnStdout: true, script: """ssh sgx-kms-cdr 'if pgrep cdf; then pkill cdf; fi'"""
+          sh returnStdout: true, script: """ssh sgx-kms-cdr 'if pgrep kms; then pkill kms; fi'"""
+          sh returnStdout: true, script: """ssh sgx-kms-cdr 'if pgrep -x dealer; then pkill -x dealer; fi'"""
+          sh returnStdout: true, script: """ssh sgx-kms-cdr 'if pgrep -x dealer-out; then pkill -x dealer-out; fi'"""
           waitUntil {
             sgx_c3po_clone_output = sh returnStdout: true, script: """
             ssh sgx-kms-cdr 'cd ${install_path} && rm -rf c3po && git clone https://github.com/omec-project/c3po.git'
             """
             echo "${sgx_c3po_clone_output}"
+            return true
+          }
+
+          // temporary waiting for patch to be merged
+          waitUntil {
+            sgx_kms_patch_output = sh returnStdout: true, script: """
+            ssh sgx-kms-cdr '
+                cp -f ${install_path}/wo-config/ias-ra.c ${install_path}/c3po/sgxcdr/kms/App/ias-ra.c
+                cp -f ${install_path}/wo-config/ias-ra.c ${install_path}/c3po/sgxcdr/dealer/App/ias-ra.c
+            '
+            """
+            echo "Temporary: " + "${sgx_kms_patch_output}"
             return true
           }
 
@@ -297,21 +319,20 @@ node("intel-102") {
       rm -fr ${sgx_app}
       rm -f cicd_*.stdout.log
       rm -f cicd_*.stderr.log
+      rm -fr *
       """
 
       try {
         sh returnStdout: true, script: """
         scp -r c3po-hss1:${hss_dir} .
         """
-      } catch (err) {
-      }
+      } catch (err) {}
 
       try {
         sh returnStdout: true, script: """
         scp -r sgx-kms-cdr:${sgx_dir} .
         """
-      } catch (err) {
-      }
+      } catch (err) {}
 
       archiveArtifacts artifacts: "**/*${stdout_ext}", allowEmptyArchive: true
       archiveArtifacts artifacts: "**/*${stderr_ext}", allowEmptyArchive: true

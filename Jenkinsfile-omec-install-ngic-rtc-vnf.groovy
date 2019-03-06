@@ -53,23 +53,36 @@ node("intel-102") {
             return running_vms.toInteger() == 2
           }
         }
+        // Clean all logs
+        sh returnStdout: true, script: """
+        ssh ngic-cp1 '
+            if [ ! -d "${base_log_dir}" ]; then mkdir -p ${base_log_dir}; fi
+            rm -fr ${base_log_dir}/*
+            '
+        """
+        sh returnStdout: true, script: """
+        ssh ngic-dp1 '
+            if [ ! -d "${base_log_dir}" ]; then mkdir -p ${base_log_dir}; fi
+            rm -fr ${base_log_dir}/*
+            '
+        """
       }
       stage("Install DP") {
         timeout(20) {
           sh returnStdout: true, script: """
-          ssh ngic-dp1 'rm -fr ${base_log_dir}/*'
           ssh ngic-dp1 'if pgrep -f [n]gic_dataplane; then pkill -f [n]gic_dataplane; fi'
           """
           waitUntil {
             ngic_dp1_output = sh returnStdout: true, script: """
             ssh ngic-dp1 'cd ${install_path} && rm -rf ngic-rtc && git clone https://github.com/omec-project/ngic-rtc.git'
 
-            ssh ngic-dp1 'cp -f ${install_path}/wo-config/dp_config.cfg ${install_path}/ngic-rtc/config/dp_config.cfg'
-            ssh ngic-dp1 'cp -f ${install_path}/wo-config/interface.cfg ${install_path}/ngic-rtc/config/interface.cfg'
-            ssh ngic-dp1 'cp -f ${install_path}/wo-config/udp-ng-core_cfg.mk ${install_path}/ngic-rtc/config/ng-core_cfg.mk'
-            ssh ngic-dp1 'cp -f ${install_path}/wo-config/static_arp.cfg ${install_path}/ngic-rtc/config/static_arp.cfg'
-            ssh ngic-dp1 'cp -f ${install_path}/wo-config/kni_Makefile ${install_path}/ngic-rtc/dp/Makefile'
-
+            ssh ngic-dp1 '
+                cp -f ${install_path}/wo-config/dp_config.cfg ${install_path}/ngic-rtc/config/dp_config.cfg
+                cp -f ${install_path}/wo-config/interface.cfg ${install_path}/ngic-rtc/config/interface.cfg
+                cp -f ${install_path}/wo-config/udp-ng-core_cfg.mk ${install_path}/ngic-rtc/config/ng-core_cfg.mk
+                cp -f ${install_path}/wo-config/static_arp.cfg ${install_path}/ngic-rtc/config/static_arp.cfg
+                cp -f ${install_path}/wo-config/kni_Makefile ${install_path}/ngic-rtc/dp/Makefile
+            '
             """
             echo "${ngic_dp1_output}"
             return true
@@ -85,17 +98,17 @@ node("intel-102") {
       stage("Install CP") {
         timeout(10) {
           sh returnStdout: true, script: """
-          ssh ngic-cp1 'rm -fr ${base_log_dir}/*'
           ssh ngic-cp1 'if pgrep -f [n]gic_controlplane; then pkill -f [n]gic_controlplane; fi'
           """
           waitUntil {
             ngic_cp1_output = sh returnStdout: true, script: """
             ssh ngic-cp1 'cd ${install_path} && rm -rf ngic-rtc && git clone https://github.com/omec-project/ngic-rtc.git'
 
-            ssh ngic-cp1 'cp -f ${install_path}/wo-config/cp_config.cfg ${install_path}/ngic-rtc/config/cp_config.cfg'
-            ssh ngic-cp1 'cp -f ${install_path}/wo-config/interface.cfg ${install_path}/ngic-rtc/config/interface.cfg'
-            ssh ngic-cp1 'cp -f ${install_path}/wo-config/ng-core_cfg.mk ${install_path}/ngic-rtc/config/ng-core_cfg.mk'
-
+            ssh ngic-cp1 '
+                cp -f ${install_path}/wo-config/cp_config.cfg ${install_path}/ngic-rtc/config/cp_config.cfg
+                cp -f ${install_path}/wo-config/interface.cfg ${install_path}/ngic-rtc/config/interface.cfg
+                cp -f ${install_path}/wo-config/ng-core_cfg.mk ${install_path}/ngic-rtc/config/ng-core_cfg.mk
+            '
             """
             echo "${ngic_cp1_output}"
             return true
@@ -122,14 +135,12 @@ node("intel-102") {
         sh returnStdout: true, script: """
         scp ngic-cp1:${base_log_dir}/* .
         """
-      } catch (err) {
-      }
+      } catch (err) {}
       try {
         sh returnStdout: true, script: """
         scp ngic-dp1:${base_log_dir}/* .
         """
-      } catch (err) {
-      }
+      } catch (err) {}
 
       archiveArtifacts artifacts: "*${stdout_ext}", allowEmptyArchive: true
       archiveArtifacts artifacts: "*${stderr_ext}", allowEmptyArchive: true

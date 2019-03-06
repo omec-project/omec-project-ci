@@ -115,12 +115,40 @@ node("intel-102") {
           }
         }
         // Clean all logs
-        sh returnStdout: true, script: """ssh ngic-cp1 'rm -fr ${ngic_dir}/*'"""
-        sh returnStdout: true, script: """ssh ngic-dp1 'rm -fr ${ngic_dir}/*'"""
-        sh returnStdout: true, script: """ssh c3po-mme1 'rm -fr ${openmme_dir}/*'"""
-        sh returnStdout: true, script: """ssh c3po-hss1 'rm -fr ${hss_dir}/*'"""
-        sh returnStdout: true, script: """ssh sgx-kms-cdr 'rm -fr ${sgx_dir}/*'"""
-        sh returnStdout: true, script: """ssh polaris 'cd /root/LTELoadTester && rm -f ${test_output_log}'"""
+        sh returnStdout: true, script: """
+        ssh ngic-cp1 '
+            if [ ! -d "${ngic_dir}" ]; then mkdir -p ${ngic_dir}; fi
+            rm -fr ${ngic_dir}/*
+            '
+        """
+        sh returnStdout: true, script: """
+        ssh ngic-dp1 '
+            if [ ! -d "${ngic_dir}" ]; then mkdir -p ${ngic_dir}; fi
+            rm -fr ${ngic_dir}/*
+            '
+        """
+        sh returnStdout: true, script: """
+        ssh c3po-mme1 '
+            if [ ! -d "${openmme_dir}" ]; then mkdir -p ${openmme_dir}; fi
+            rm -fr ${openmme_dir}/*
+            '
+        """
+        sh returnStdout: true, script: """
+        ssh c3po-hss1 '
+            if [ ! -d "${hss_dir}" ]; then mkdir -p ${hss_dir}; fi
+            rm -fr ${hss_dir}/*
+            '
+        """
+        sh returnStdout: true, script: """
+        ssh sgx-kms-cdr '
+            if [ ! -d "${sgx_dir}" ]; then mkdir -p ${sgx_dir}; fi
+            rm -fr ${sgx_dir}/*
+        '
+        """
+        sh returnStdout: true, script: """
+        ssh polaris '
+            cd /root/LTELoadTester && rm -f ${test_output_log}
+        '"""
 
       }
       stage("c3po-ctf/cdf") {
@@ -439,43 +467,37 @@ node("intel-102") {
         sh returnStdout: true, script: """
         scp -r ngic-cp1:${ngic_dir} .
         """
-      } catch (err) {
-      }
+      } catch (err) {}
 
       try {
         sh returnStdout: true, script: """
         scp -r ngic-dp1:${ngic_dir} .
         """
-      } catch (err) {
-      }
+      } catch (err) {}
 
       try {
         sh returnStdout: true, script: """
         scp -r c3po-mme1:${openmme_dir} .
         """
-      } catch (err) {
-      }
+      } catch (err) {}
 
       try {
         sh returnStdout: true, script: """
         scp -r c3po-hss1:${hss_dir} .
         """
-      } catch (err) {
-      }
+      } catch (err) {}
 
       try {
         sh returnStdout: true, script: """
         scp -r sgx-kms-cdr:${sgx_dir} .
         """
-      } catch (err) {
-      }
+      } catch (err) {}
 
       try {
         sh returnStdout: true, script: """
         scp polaris:/root/LTELoadTester/${test_output_log} .
         """
-      } catch (err) {
-      }
+      } catch (err) {}
 
       archiveArtifacts artifacts: "**/*${stdout_ext}", allowEmptyArchive: true
       archiveArtifacts artifacts: "**/*${stderr_ext}", allowEmptyArchive: true

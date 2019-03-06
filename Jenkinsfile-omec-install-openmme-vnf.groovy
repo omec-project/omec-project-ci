@@ -50,11 +50,17 @@ node("intel-102") {
             return running_vms.toInteger() == 1
           }
         }
+        // Clean all logs
+        sh returnStdout: true, script: """
+        ssh c3po-mme1 '
+            if [ ! -d "${base_log_dir}" ]; then mkdir -p ${base_log_dir}; fi
+            rm -fr ${base_log_dir}/*
+            '
+        """
       }
       stage("Install MME") {
         timeout(10) {
           sh returnStdout: true, script: """
-          ssh c3po-mme1 'rm -fr ${base_log_dir}/*'
           ssh c3po-mme1 'if pgrep -f [m]me-app; then pkill -f [m]me-app; fi'
           ssh c3po-mme1 'if pgrep -f [s]1ap-app; then pkill -f [s]1ap-app; fi'
           ssh c3po-mme1 'if pgrep -f [s]11-app; then pkill -f [s]11-app; fi'
@@ -96,8 +102,7 @@ node("intel-102") {
         sh returnStdout: true, script: """
         scp c3po-mme1:${base_log_dir}/* .
         """
-      } catch (err) {
-      }
+      } catch (err) {}
 
       archiveArtifacts artifacts: "*${stdout_ext}", allowEmptyArchive: true
       archiveArtifacts artifacts: "*${stderr_ext}", allowEmptyArchive: true

@@ -11,6 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 node("intel-102") {
 
   def basedir_config = '/home/jenkins/wo-config'
@@ -152,9 +153,13 @@ node("intel-102") {
 
       }
       stage("c3po-ctf/cdf") {
-        sh returnStdout: true, script: """ssh sgx-kms-cdr 'if pgrep ctf; then pkill ctf; fi'"""
-        sh returnStdout: true, script: """ssh sgx-kms-cdr 'if pgrep cdf; then pkill cdf; fi'"""
-        sh returnStdout: true, script: """ssh sgx-kms-cdr 'rm -f /tmp/*.csv'"""
+        sh returnStdout: true, script: """
+        ssh sgx-kms-cdr '
+            if pgrep ctf; then pkill ctf; fi
+            if pgrep cdf; then pkill cdf; fi
+            rm -f /tmp/*.csv
+            '
+        """
         timeout(2) {
           waitUntil {
             sgx_output = sh returnStdout: true, script: """
@@ -173,11 +178,15 @@ node("intel-102") {
         sh returnStdout: true, script: """ssh sgx-kms-cdr 'pgrep cdf'"""
       }
       stage("c3po-router") {
-        sh returnStdout: true, script: """ssh sgx-kms-cdr 'if pgrep -f start_and__monitor\\.py; then pkill -f start_and__monitor\\.py; fi'"""
-        sh returnStdout: true, script: """ssh sgx-kms-cdr 'if pgrep -f in_queue_router\\.py; then pkill -f in_queue_router\\.py; fi'"""
-        sh returnStdout: true, script: """ssh sgx-kms-cdr 'if pgrep -f out_queue_router\\.py; then pkill -f out_queue_router\\.py; fi'"""
-        sh returnStdout: true, script: """ssh sgx-kms-cdr 'if pgrep -f cdr_slave_streamer_device\\.py; then pkill -f cdr_slave_streamer_device\\.py; fi'"""
-        sh returnStdout: true, script: """ssh sgx-kms-cdr 'rm -fr ${basedir_sgx}/c3po/sgxcdr/router/ipc'"""
+        sh returnStdout: true, script: """
+        ssh sgx-kms-cdr '
+            if pgrep -f start_and__monitor\\.py; then pkill -f start_and__monitor\\.py; fi
+            if pgrep -f in_queue_router\\.py; then pkill -f in_queue_router\\.py; fi
+            if pgrep -f out_queue_router\\.py; then pkill -f out_queue_router\\.py; fi
+            if pgrep -f cdr_slave_streamer_device\\.py; then pkill -f cdr_slave_streamer_device\\.py; fi
+            rm -fr ${basedir_sgx}/c3po/sgxcdr/router/ipc
+            '
+        """
         timeout(10) {
           waitUntil {
             router_output = sh returnStdout: true, script: """
@@ -200,11 +209,15 @@ node("intel-102") {
         sh returnStdout: true, script: """ssh sgx-kms-cdr 'pgrep -f out_queue_router\\.py'"""
       }
       stage("c3po-sgxcdr") {
-        sh returnStdout: true, script: """ssh sgx-kms-cdr 'if pgrep kms; then pkill kms; fi'"""
-        sh returnStdout: true, script: """ssh sgx-kms-cdr 'if pgrep -x dealer; then pkill -x dealer; fi'"""
-        sh returnStdout: true, script: """ssh sgx-kms-cdr 'if pgrep -x dealer-out; then pkill -x dealer-out; fi'"""
-        // Clean cdr directory from other possible <Identity>_<MRENCLAVE>.csv files to simplify later tests.
-        sh returnStdout: true, script: """ssh sgx-kms-cdr 'rm -fr ${basedir_sgx}/c3po/sgxcdr/dealer-out/cdr/*'"""
+        sh returnStdout: true, script: """
+        ssh sgx-kms-cdr '
+            if pgrep kms; then pkill kms; fi
+            if pgrep -x dealer; then pkill -x dealer; fi
+            if pgrep -x dealer-out; then pkill -x dealer-out; fi
+            # Clean cdr directory from other possible <Identity>_<MRENCLAVE>.csv files to simplify later tests.
+            rm -fr ${basedir_sgx}/c3po/sgxcdr/dealer-out/cdr/*
+            '
+        """
         timeout(3) {
           waitUntil {
             sgxcdr_output = sh returnStdout: true, script: """
@@ -263,10 +276,14 @@ node("intel-102") {
         sh returnStdout: true, script: """ssh c3po-hss1 'pgrep -fl [h]ss'"""
       }
       stage("c3po-mme1") {
-        sh returnStdout: true, script: """ssh c3po-mme1 'if pgrep -f [m]me-app; then pkill -f [m]me-app; fi'"""
-        sh returnStdout: true, script: """ssh c3po-mme1 'if pgrep -f [s]1ap-app; then pkill -f [s]1ap-app; fi'"""
-        sh returnStdout: true, script: """ssh c3po-mme1 'if pgrep -f [s]11-app; then pkill -f [s]11-app; fi'"""
-        sh returnStdout: true, script: """ssh c3po-mme1 'if pgrep -f [s]6a-app; then pkill -f [s]6a-app; fi'"""
+        sh returnStdout: true, script: """
+        ssh c3po-mme1 '
+            if pgrep -f [m]me-app; then pkill -f [m]me-app; fi
+            if pgrep -f [s]1ap-app; then pkill -f [s]1ap-app; fi
+            if pgrep -f [s]11-app; then pkill -f [s]11-app; fi
+            if pgrep -f [s]6a-app; then pkill -f [s]6a-app; fi
+            '
+        """
         timeout(2) {
           waitUntil {
             c3po_mme1_output = sh returnStdout: true, script: """

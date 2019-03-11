@@ -11,9 +11,10 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 node("intel-102") {
 
- def install_path = '/home/jenkins'
+  def install_path = '/home/jenkins'
 
   def base_path = '/var/log/cicd'
   def base_folder = 'install'
@@ -61,10 +62,12 @@ node("intel-102") {
       stage("Install MME") {
         timeout(10) {
           sh returnStdout: true, script: """
-          ssh c3po-mme1 'if pgrep -f [m]me-app; then pkill -f [m]me-app; fi'
-          ssh c3po-mme1 'if pgrep -f [s]1ap-app; then pkill -f [s]1ap-app; fi'
-          ssh c3po-mme1 'if pgrep -f [s]11-app; then pkill -f [s]11-app; fi'
-          ssh c3po-mme1 'if pgrep -f [s]6a-app; then pkill -f [s]6a-app; fi'
+          ssh c3po-mme1 '
+              if pgrep -f [m]me-app; then pkill -f [m]me-app; fi
+              if pgrep -f [s]1ap-app; then pkill -f [s]1ap-app; fi
+              if pgrep -f [s]11-app; then pkill -f [s]11-app; fi
+              if pgrep -f [s]6a-app; then pkill -f [s]6a-app; fi
+              '
           """
           waitUntil {
             c3po_mme1_output = sh returnStdout: true, script: """
@@ -78,7 +81,7 @@ node("intel-102") {
                 cp -f ${install_path}/wo-config/s6a_fd.conf ${install_path}/openmme/src/s6a/conf/s6a_fd.conf
 
                 cp ${install_path}/openmme/src/mme-app/conf/*.pem ${install_path}/openmme/src/s6a/conf/
-            '
+                '
             """
             echo "${c3po_mme1_output}"
             return true

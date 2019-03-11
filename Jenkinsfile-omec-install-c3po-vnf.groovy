@@ -11,6 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 node("intel-102") {
 
   def install_path = '/home/jenkins'
@@ -135,11 +136,15 @@ node("intel-102") {
       }
       stage("clone c3po for SGX") {
         timeout(20) {
-          sh returnStdout: true, script: """ssh sgx-kms-cdr 'if pgrep ctf; then pkill ctf; fi'"""
-          sh returnStdout: true, script: """ssh sgx-kms-cdr 'if pgrep cdf; then pkill cdf; fi'"""
-          sh returnStdout: true, script: """ssh sgx-kms-cdr 'if pgrep kms; then pkill kms; fi'"""
-          sh returnStdout: true, script: """ssh sgx-kms-cdr 'if pgrep -x dealer; then pkill -x dealer; fi'"""
-          sh returnStdout: true, script: """ssh sgx-kms-cdr 'if pgrep -x dealer-out; then pkill -x dealer-out; fi'"""
+          sh returnStdout: true, script: """
+          ssh sgx-kms-cdr '
+              if pgrep ctf; then pkill ctf; fi
+              if pgrep cdf; then pkill cdf; fi
+              if pgrep kms; then pkill kms; fi
+              if pgrep -x dealer; then pkill -x dealer; fi
+              if pgrep -x dealer-out; then pkill -x dealer-out; fi
+              '
+          """
           waitUntil {
             sgx_c3po_clone_output = sh returnStdout: true, script: """
             ssh sgx-kms-cdr 'cd ${install_path} && rm -rf c3po && git clone https://github.com/omec-project/c3po.git'
@@ -154,7 +159,7 @@ node("intel-102") {
             ssh sgx-kms-cdr '
                 cp -f ${install_path}/wo-config/ias-ra.c ${install_path}/c3po/sgxcdr/kms/App/ias-ra.c
                 cp -f ${install_path}/wo-config/ias-ra.c ${install_path}/c3po/sgxcdr/dealer/App/ias-ra.c
-            '
+                '
             """
             echo "Temporary: " + "${sgx_kms_patch_output}"
             return true

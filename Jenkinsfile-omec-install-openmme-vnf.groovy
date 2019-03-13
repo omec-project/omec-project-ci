@@ -12,7 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-node("intel-102") {
+node("${params.executorNode}") {
+
+  def ghRepository = 'omec-project/openmme'
 
   def install_path = '/home/jenkins'
 
@@ -33,6 +35,9 @@ node("intel-102") {
 
   timeout (60) {
     try {
+
+      echo "${params}"
+
       stage("VMs check") {
         timeout(1) {
           waitUntil {
@@ -72,7 +77,16 @@ node("intel-102") {
           waitUntil {
             c3po_mme1_output = sh returnStdout: true, script: """
             ssh c3po-mme1 '
-                cd ${install_path}/ && rm -rf openmme && git clone https://github.com/omec-project/openmme.git
+                cd ${install_path}
+                rm -rf openmme
+                git clone https://github.com/omec-project/openmme.git || exit 1
+                cd openmme
+
+                if [ ${params.ghprbGhRepository} = ${ghRepository} ]; then
+                    git fetch origin pull/${params.ghprbPullId}/head:jenkins_test || exit 1
+                    git checkout jenkins_test || exit 1
+                    git log -1
+                fi
 
                 cp -f ${install_path}/wo-config/mme.json    ${install_path}/openmme/src/mme-app/conf/mme.json
                 cp -f ${install_path}/wo-config/s1ap.json   ${install_path}/openmme/src/s1ap/conf/s1ap.json
@@ -97,8 +111,7 @@ node("intel-102") {
     } finally {
 
       sh returnStdout: true, script: """
-      rm -f *${stdout_ext}
-      rm -f *${stderr_ext}
+      rm -fr *
       """
 
       try {

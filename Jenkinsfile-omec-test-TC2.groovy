@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-node("intel-102") {
+node("${params.executorNode}") {
 
   def basedir_config = '/home/jenkins/wo-config'
 
@@ -468,16 +468,7 @@ node("intel-102") {
       currentBuild.result = 'FAILURE'
     } finally {
       sh returnStdout: true, script: """
-      rm -fr ${hss_app}
-      rm -fr ${sgx_app}
-      rm -fr ${ngic_app}
-      rm -fr ${openmme_app}
-      rm -fr ${hss_app}
-      rm -fr ${sgx_app}
-
-      rm -f cicd_*.stdout.log
-      rm -f cicd_*.stderr.log
-      rm -f test_*.log  # delete Polaris test log file
+      rm -fr *
       """
 
       try {

@@ -12,7 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-node("intel-102") {
+node("${params.executorNode}") {
+
+  def ghRepository = 'omec-project/ngic-rtc'
 
   def base_path = '/var/log/cicd'
   def base_folder = 'install'
@@ -34,8 +36,12 @@ node("intel-102") {
   def dp_stderr_log = "${base_log_dir}/${dp_base_stderr_log}"
 
   def install_path = '/home/jenkins'
+
   timeout (60) {
     try {
+
+      echo "${params}"
+
       stage("VMs check") {
         timeout(1) {
           waitUntil {
@@ -75,9 +81,18 @@ node("intel-102") {
           """
           waitUntil {
             ngic_dp1_output = sh returnStdout: true, script: """
-            ssh ngic-dp1 'cd ${install_path} && rm -rf ngic-rtc && git clone https://github.com/omec-project/ngic-rtc.git'
-
             ssh ngic-dp1 '
+                cd ${install_path}
+                rm -rf ngic-rtc
+                git clone https://github.com/omec-project/ngic-rtc.git || exit 1
+                cd ngic-rtc
+
+                if [ ${params.ghprbGhRepository} = ${ghRepository} ]; then
+                    git fetch origin pull/${params.ghprbPullId}/head: || exit 1
+                    git checkout jenkins_test || exit 1
+                    git log -1
+                fi
+
                 cp -f ${install_path}/wo-config/dp_config.cfg ${install_path}/ngic-rtc/config/dp_config.cfg
                 cp -f ${install_path}/wo-config/interface.cfg ${install_path}/ngic-rtc/config/interface.cfg
                 cp -f ${install_path}/wo-config/udp-ng-core_cfg.mk ${install_path}/ngic-rtc/config/ng-core_cfg.mk
@@ -103,9 +118,18 @@ node("intel-102") {
           """
           waitUntil {
             ngic_cp1_output = sh returnStdout: true, script: """
-            ssh ngic-cp1 'cd ${install_path} && rm -rf ngic-rtc && git clone https://github.com/omec-project/ngic-rtc.git'
-
             ssh ngic-cp1 '
+                cd ${install_path}
+                rm -rf ngic-rtc
+                git clone https://github.com/omec-project/ngic-rtc.git || exit 1
+                cd ngic-rtc
+
+                if [ ${params.ghprbGhRepository} = ${ghRepository} ]; then
+                    git fetch origin pull/${params.ghprbPullId}/head:jenkins_test || exit 1
+                    git checkout jenkins_test || exit 1
+                    git log -1
+                fi
+
                 cp -f ${install_path}/wo-config/cp_config.cfg ${install_path}/ngic-rtc/config/cp_config.cfg
                 cp -f ${install_path}/wo-config/interface.cfg ${install_path}/ngic-rtc/config/interface.cfg
                 cp -f ${install_path}/wo-config/ng-core_cfg.mk ${install_path}/ngic-rtc/config/ng-core_cfg.mk
@@ -128,8 +152,7 @@ node("intel-102") {
     } finally {
 
       sh returnStdout: true, script: """
-      rm -f *${stdout_ext}
-      rm -f *${stderr_ext}
+      rm -fr *
       """
 
       try {

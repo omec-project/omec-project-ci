@@ -12,7 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-node("intel-102") {
+node("${params.executorNode}") {
+
+  def ghRepository = 'omec-project/c3po'
 
   def install_path = '/home/jenkins'
   def basedir_dp1 = '/home/jenkins'  //for keys installation
@@ -60,6 +62,8 @@ node("intel-102") {
   timeout (60) {
     try {
 
+      echo "${params}"
+
       // to check and update SGX dealer / DP keys
       def mrenclave = ''
       def mrsigner = ''
@@ -102,7 +106,18 @@ node("intel-102") {
           sh returnStdout: true, script: """ssh c3po-hss1 'if pgrep -f [h]ss; then pkill -f [h]ss; fi'"""
           waitUntil {
             hss_c3po_clone_output = sh returnStdout: true, script: """
-            ssh c3po-hss1 'cd ${install_path} && rm -rf c3po && git clone https://github.com/omec-project/c3po.git'
+            ssh c3po-hss1 '
+                cd ${install_path}
+                rm -rf c3po
+                git clone https://github.com/omec-project/c3po.git || exit 1
+                cd c3po
+
+                if [ ${params.ghprbGhRepository} = ${ghRepository} ]; then
+                    git fetch origin pull/${params.ghprbPullId}/head:jenkins_test || exit 1
+                    git checkout jenkins_test || exit 1
+                    git log -1
+                fi
+                '
             """
             echo "${hss_c3po_clone_output}"
             return true
@@ -147,13 +162,24 @@ node("intel-102") {
           """
           waitUntil {
             sgx_c3po_clone_output = sh returnStdout: true, script: """
-            ssh sgx-kms-cdr 'cd ${install_path} && rm -rf c3po && git clone https://github.com/omec-project/c3po.git'
+            ssh sgx-kms-cdr '
+                cd ${install_path}
+                rm -rf c3po
+                git clone https://github.com/omec-project/c3po.git || exit 1
+                cd c3po
+
+                if [ ${params.ghprbGhRepository} = ${ghRepository} ]; then
+                    git fetch origin pull/${params.ghprbPullId}/head:jenkins_test || exit 1
+                    git checkout jenkins_test || exit 1
+                    git log -1
+                fi
+                '
             """
             echo "${sgx_c3po_clone_output}"
             return true
           }
 
-          // temporary waiting for patch to be merged
+          // TODO: temporary, to be removed once https://github.com/omec-project/c3po/pull/19 is merged
           waitUntil {
             sgx_kms_patch_output = sh returnStdout: true, script: """
             ssh sgx-kms-cdr '
@@ -320,10 +346,6 @@ node("intel-102") {
     } finally {
 
       sh returnStdout: true, script: """
-      rm -fr ${hss_app}
-      rm -fr ${sgx_app}
-      rm -f cicd_*.stdout.log
-      rm -f cicd_*.stderr.log
       rm -fr *
       """
 

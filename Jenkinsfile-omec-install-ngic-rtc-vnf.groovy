@@ -88,7 +88,7 @@ node("${params.executorNode}") {
                 cd ngic-rtc
 
                 if [ ${params.ghprbGhRepository} = ${ghRepository} ]; then
-                    git fetch origin pull/${params.ghprbPullId}/head: || exit 1
+                    git fetch origin pull/${params.ghprbPullId}/head:jenkins_test || exit 1
                     git checkout jenkins_test || exit 1
                     git log -1
                 fi

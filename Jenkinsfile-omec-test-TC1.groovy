@@ -416,8 +416,7 @@ node("${params.executorNode}") {
         sh returnStdout: true, script: """ssh ngic-dp1 'pgrep -fl [n]gic_dataplane'"""
       }
       stage("test polaris") {
-        timeout(5) {
-          // TODO: uncomment
+        timeout(10) {
           sh returnStdout: true, script: """
           ssh polaris '
               if pgrep -f [n]ettest; then pkill -f [n]ettest; fi

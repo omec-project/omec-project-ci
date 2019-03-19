@@ -406,7 +406,7 @@ node("${params.executorNode}") {
         sh returnStdout: true, script: """ssh ngic-dp1 'pgrep -fl [n]gic_dataplane'"""
       }
       stage("test polaris") {
-        timeout(5) {
+        timeout(10) {
           waitUntil {
             test_output = sh returnStdout: true, script: """
             ssh polaris 'cd /root/LTELoadTester && nettest -emulator 127.0.0.1:5678:enb,127.0.0.1:6789:ipte Attach-Detach-wdata.tcl > ${test_output_log}'

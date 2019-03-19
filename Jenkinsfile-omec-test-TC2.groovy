@@ -1,4 +1,4 @@
-// Copyright 2017-present Open Networking Foundation
+// Copyright 2019-present Open Networking Foundation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -441,7 +441,7 @@ node("${params.executorNode}") {
             */
 
             cdr_filename = sh returnStdout: true, script: """
-            ssh sgx-kms-cdr 'ls ${basedir_sgx}/c3po/sgxcdr/dealer-out/cdr | grep -oP "\\d+(?=_.*\\.csv)"'
+            ssh sgx-kms-cdr 'ls ${basedir_sgx}/c3po/sgxcdr/dealer-out/cdr | grep -oP "\\d+(?=_.*\\.csv)" | uniq'
             """
             cdr_filename = cdr_filename.trim()
             echo "cdr directory: identity: " + "$cdr_filename"

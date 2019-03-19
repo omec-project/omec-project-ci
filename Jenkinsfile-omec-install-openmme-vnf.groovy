@@ -94,7 +94,9 @@ node("${params.executorNode}") {
                 cp -f ${install_path}/wo-config/s6a.json    ${install_path}/openmme/src/s6a/conf/s6a.json
                 cp -f ${install_path}/wo-config/s6a_fd.conf ${install_path}/openmme/src/s6a/conf/s6a_fd.conf
 
-                cp ${install_path}/openmme/src/mme-app/conf/*.pem ${install_path}/openmme/src/s6a/conf/
+                # TODO: temporary, to be removed once https://github.com/omec-project/openmme/issues/2 and 8 are fixed
+                # static certificates in openmme/src/mme-app/conf are expired
+                cp ${install_path}/wo-config/*.pem ${install_path}/openmme/src/s6a/conf/
                 '
             """
             echo "${c3po_mme1_output}"

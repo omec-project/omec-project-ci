@@ -167,8 +167,8 @@ node("${params.executorNode}") {
             sleep 5;
             ssh sgx-kms-cdr 'cd ${basedir_sgx}/c3po/cdf && (stdbuf -o0 ./bin/cdf -f conf/cdf.conf 2>${cdf_stderr_log} 1>${cdf_stdout_log} &)'
 
-            ssh sgx-kms-cdr 'pgrep ctf || (cat ${ctf_stderr_log} && cat ${ctf_stdout_log} && exit 1)'
-            ssh sgx-kms-cdr 'pgrep cdf || (cat ${cdf_stderr_log} && cat ${cdf_stdout_log} && exit 1)'
+            ssh sgx-kms-cdr 'pgrep -l ctf || (cat ${ctf_stderr_log} && cat ${ctf_stdout_log} && exit 1)'
+            ssh sgx-kms-cdr 'pgrep -l cdf || (cat ${cdf_stderr_log} && cat ${cdf_stdout_log} && exit 1)'
             """
             echo "${sgx_output}"
             return true
@@ -196,9 +196,9 @@ node("${params.executorNode}") {
             sleep 2;
             ssh sgx-kms-cdr 'cd ${basedir_sgx}/c3po/sgxcdr/router && (stdbuf -o0 python out_queue_router.py 2>${out_queue_router_stderr_log} 1>${out_queue_router_stdout_log} &)'
 
-            ssh sgx-kms-cdr 'pgrep -f start_and__monitor\\.py || (cat ${router_monitor_stderr_log} && cat ${router_monitor_stdout_log} && exit 1)'
-            ssh sgx-kms-cdr 'pgrep -f in_queue_router\\.py || (cat ${in_queue_router_stderr_log} && cat /${in_queue_router_stdout_log} && exit 1)'
-            ssh sgx-kms-cdr 'pgrep -f out_queue_router\\.py || (cat ${out_queue_router_stderr_log} && cat ${out_queue_router_stdout_log} & exit 1)'
+            ssh sgx-kms-cdr 'pgrep -a -fl start_and__monitor\\.py || (cat ${router_monitor_stderr_log} && cat ${router_monitor_stdout_log} && exit 1)'
+            ssh sgx-kms-cdr 'pgrep -a -fl in_queue_router\\.py || (cat ${in_queue_router_stderr_log} && cat /${in_queue_router_stdout_log} && exit 1)'
+            ssh sgx-kms-cdr 'pgrep -a -fl out_queue_router\\.py || (cat ${out_queue_router_stderr_log} && cat ${out_queue_router_stdout_log} & exit 1)'
             """
             echo "${router_output}"
             return true
@@ -228,9 +228,9 @@ node("${params.executorNode}") {
             ssh sgx-kms-cdr 'cd ${basedir_sgx}/c3po/sgxcdr/dealer-out && (stdbuf -o0 ./dealer-out -j conf/dealer.json 2>${dealer_out_stderr_log} 1>${dealer_out_stdout_log} &)'
             sleep 5;
 
-            ssh sgx-kms-cdr 'pgrep kms || (cat ${kms_stderr_log} && cat ${kms_stdout_log} && exit 1)'
-            ssh sgx-kms-cdr 'pgrep -x dealer || (cat ${dealer_stderr_log} && cat ${dealer_stdout_log} && exit 1)'
-            ssh sgx-kms-cdr 'pgrep -x dealer-out || (cat ${dealer_out_stderr_log} && cat ${dealer_out_stdout_log} && exit 1)'
+            ssh sgx-kms-cdr 'pgrep -l kms || (cat ${kms_stderr_log} && cat ${kms_stdout_log} && exit 1)'
+            ssh sgx-kms-cdr 'pgrep -xl dealer || (cat ${dealer_stderr_log} && cat ${dealer_stdout_log} && exit 1)'
+            ssh sgx-kms-cdr 'pgrep -xl dealer-out || (cat ${dealer_out_stderr_log} && cat ${dealer_out_stdout_log} && exit 1)'
             """
             echo "${sgxcdr_output}"
             return true
@@ -276,14 +276,20 @@ node("${params.executorNode}") {
         sh returnStdout: true, script: """ssh c3po-hss1 'pgrep -fl [h]ss'"""
       }
       stage("c3po-mme1") {
-        sh returnStdout: true, script: """
+        c3po_mme_kill_output = sh returnStdout: true, script: """
         ssh c3po-mme1 '
+            ps -e | grep -P "(mme|s11|s1ap|s6a)-app" | grep -v grep || echo "no running process found"
             if pgrep -f [m]me-app; then pkill -f [m]me-app; fi
+            sleep 1
             if pgrep -f [s]1ap-app; then pkill -f [s]1ap-app; fi
+            sleep 1
             if pgrep -f [s]11-app; then pkill -f [s]11-app; fi
+            sleep 1
             if pgrep -f [s]6a-app; then pkill -f [s]6a-app; fi
+            ps -e | grep -P "(mme|s11|s1ap|s6a)-app" | grep -v grep && exit 1 || echo "no running process found"
             '
         """
+        echo "${c3po_mme_kill_output}"
         timeout(2) {
           waitUntil {
             c3po_mme1_output = sh returnStdout: true, script: """
@@ -386,24 +392,22 @@ node("${params.executorNode}") {
         }
       }
       stage("check processes") {
-        // ctf & cdf
-        sh returnStdout: true, script: """ssh sgx-kms-cdr 'pgrep ctf'"""
-        sh returnStdout: true, script: """ssh sgx-kms-cdr 'pgrep cdf'"""
-        // router
-        sh returnStdout: true, script: """ssh sgx-kms-cdr 'pgrep -f start_and__monitor\\.py'"""
-        sh returnStdout: true, script: """ssh sgx-kms-cdr 'pgrep -f in_queue_router\\.py'"""
-        sh returnStdout: true, script: """ssh sgx-kms-cdr 'pgrep -f out_queue_router\\.py'"""
-        //kms & dealer & dealer-out
-        sh returnStdout: true, script: """ssh sgx-kms-cdr 'pgrep kms'"""
-        sh returnStdout: true, script: """ssh sgx-kms-cdr 'pgrep -x dealer'"""
-        sh returnStdout: true, script: """ssh sgx-kms-cdr 'pgrep -x dealer-out'"""
-        // hss
-        sh returnStdout: true, script: """ssh c3po-hss1 'pgrep -fl [h]ss'"""
-        // all mme processes
-        sh returnStdout: true, script: """ssh c3po-mme1 'pgrep -f [m]me-app && pgrep -f [s]1ap-app && pgrep -f [s]11-app && pgrep -fl [s]6a-app'"""
-        // CP & DP
-        sh returnStdout: true, script: """ssh ngic-cp1 'pgrep -fl [n]gic_controlplane'"""
-        sh returnStdout: true, script: """ssh ngic-dp1 'pgrep -fl [n]gic_dataplane'"""
+        check_process_output = sh returnStdout: true, script: """
+        # ctf / cdf
+        ssh sgx-kms-cdr 'pgrep -l ctf && pgrep -l cdf'
+        # router
+        ssh sgx-kms-cdr 'pgrep -a -fl start_and__monitor\\.py && pgrep -a -fl in_queue_router\\.py && pgrep -a -fl out_queue_router\\.py'
+        # kms & dealer & dealer-out
+        ssh sgx-kms-cdr 'pgrep -l kms && pgrep -xl dealer && pgrep -xl dealer-out'
+        # hss
+        ssh c3po-hss1 'pgrep -fl [h]ss'
+        # all mme processes
+        ssh c3po-mme1 'pgrep -fl [m]me-app && pgrep -fl [s]1ap-app && pgrep -fl [s]11-app && pgrep -fl [s]6a-app'
+        # CP & DP
+        ssh ngic-cp1 'pgrep -fl [n]gic_controlplane'
+        ssh ngic-dp1 'pgrep -fl [n]gic_dataplane'
+        """
+        echo "${check_process_output}"
       }
       stage("test polaris") {
         timeout(10) {

@@ -320,8 +320,7 @@ node("${params.executorNode}") {
         timeout(3) {
           waitUntil {
             ngic_rtc_cp_output = sh returnStdout: true, script: """
-            ssh ngic-cp1 'cp -f ${basedir_config}/zmq-ng-core_cfg.mk ${basedir_cp1}/ngic-rtc/config/ng-core_cfg.mk'
-            ssh ngic-cp1 'cd ${basedir_cp1}/ngic-rtc/cp && source ../setenv.sh && make clean && make'
+            ssh ngic-cp1 'cd ${basedir_cp1}/ngic-rtc/cp && source ../setenv.sh && make clean && make EXTRA_CFLAGS=-DZMQ_COMM'
             sleep 2
             """
             echo "${ngic_rtc_cp_output}"
@@ -352,9 +351,7 @@ node("${params.executorNode}") {
           }
           waitUntil {
             ngic_rtc_dp_output = sh returnStdout: true, script: """
-            ssh ngic-dp1 'cp -f ${basedir_config}/zmq-ng-core_cfg.mk ${basedir_dp1}/ngic-rtc/config/ng-core_cfg.mk'
-            ssh ngic-dp1 'cp -f ${basedir_config}/kni_Makefile ${basedir_dp1}/ngic-rtc/dp/Makefile'
-            ssh ngic-dp1 'cd ${basedir_dp1}/ngic-rtc/dp && source ../setenv.sh && make clean && make'
+            ssh ngic-dp1 'cd ${basedir_dp1}/ngic-rtc/dp && source ../setenv.sh && make clean && make EXTRA_CFLAGS="-DZMQ_COMM -USTATIC_ARP"'
             """
             echo "${ngic_rtc_dp_output}"
             return true

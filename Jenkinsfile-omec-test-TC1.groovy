@@ -293,15 +293,19 @@ node("${params.executorNode}") {
         timeout(2) {
           waitUntil {
             c3po_mme1_output = sh returnStdout: true, script: """
-            sleep 2;
-            ssh c3po-mme1 'cd ${basedir_mme}/openmme/src/mme-app && export LD_LIBRARY_PATH=../common/ && (stdbuf -o0 ./mme-app 2>${mme_stderr_log} 1>${mme_stdout_log} &)'
-            sleep 2;
-            ssh c3po-mme1 'cd ${basedir_mme}/openmme/src/s1ap && export LD_LIBRARY_PATH=../common/ && (stdbuf -o0 ./s1ap-app 2>${s1ap_stderr_log} 1>${s1ap_stdout_log} &)'
-            sleep 2;
-            ssh c3po-mme1 'cd ${basedir_mme}/openmme/src/s11 && export LD_LIBRARY_PATH=../common/ && (stdbuf -o0 ./s11-app 2>${s11_stderr_log} 1>${s11_stdout_log} &)'
-            sleep 2;
-            ssh c3po-mme1 'cd ${basedir_mme}/openmme/src/s6a && export LD_LIBRARY_PATH=../common/ && (stdbuf -o0 ./s6a-app 2>${s6a_stderr_log} 1>${s6a_stdout_log} &)'
-            sleep 2;
+            ssh c3po-mme1 '
+                cd ${basedir_mme}/openmme/target
+                export LD_LIBRARY_PATH=./lib
+
+                (stdbuf -o0 ./bin/mme-app 2>${mme_stderr_log} 1>${mme_stdout_log} &)
+                sleep 2
+                (stdbuf -o0 ./bin/s1ap-app 2>${s1ap_stderr_log} 1>${s1ap_stdout_log} &)
+                sleep 2
+                (stdbuf -o0 ./bin/s11-app 2>${s11_stderr_log} 1>${s11_stdout_log} &)
+                sleep 2
+                (stdbuf -o0 ./bin/s6a-app 2>${s6a_stderr_log} 1>${s6a_stdout_log} &)
+                sleep 2
+                '
             ssh c3po-mme1 'pgrep -fl [m]me-app || (cat ${mme_stderr_log} && cat ${mme_stdout_log} && exit 1)'
             ssh c3po-mme1 'pgrep -fl [s]1ap-app || (cat ${s1ap_stderr_log} && cat ${s1ap_stdout_log} && exit 1)'
             ssh c3po-mme1 'pgrep -fl [s]11-app || (cat ${s11_stderr_log} && cat ${s11_stdout_log} && exit 1)'

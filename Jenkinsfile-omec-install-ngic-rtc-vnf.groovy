@@ -95,9 +95,6 @@ node("${params.executorNode}") {
 
                 cp -f ${install_path}/wo-config/dp_config.cfg ${install_path}/ngic-rtc/config/dp_config.cfg
                 cp -f ${install_path}/wo-config/interface.cfg ${install_path}/ngic-rtc/config/interface.cfg
-                cp -f ${install_path}/wo-config/udp-ng-core_cfg.mk ${install_path}/ngic-rtc/config/ng-core_cfg.mk
-                cp -f ${install_path}/wo-config/static_arp.cfg ${install_path}/ngic-rtc/config/static_arp.cfg
-                cp -f ${install_path}/wo-config/kni_Makefile ${install_path}/ngic-rtc/dp/Makefile
                 '
             """
             echo "${ngic_dp1_output}"
@@ -132,7 +129,6 @@ node("${params.executorNode}") {
 
                 cp -f ${install_path}/wo-config/cp_config.cfg ${install_path}/ngic-rtc/config/cp_config.cfg
                 cp -f ${install_path}/wo-config/interface.cfg ${install_path}/ngic-rtc/config/interface.cfg
-                cp -f ${install_path}/wo-config/ng-core_cfg.mk ${install_path}/ngic-rtc/config/ng-core_cfg.mk
                 '
             """
             echo "${ngic_cp1_output}"

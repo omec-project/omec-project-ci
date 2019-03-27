@@ -320,7 +320,7 @@ node("${params.executorNode}") {
         timeout(3) {
           waitUntil {
             ngic_rtc_cp_output = sh returnStdout: true, script: """
-            ssh ngic-cp1 'cp -f ${basedir_config}/zmq-ng-core_cfg.mk ${basedir_cp1}/ngic-rtc/config/ng-core_cfg.mk'
+            ssh ngic-cp1 'cp -f ${basedir_cp1}/ngic-rtc/.ci/tc1/cp/custom-cp.mk ${basedir_cp1}/ngic-rtc/cp/custom-cp.mk'
             ssh ngic-cp1 'cd ${basedir_cp1}/ngic-rtc/cp && source ../setenv.sh && make clean && make'
             sleep 2
             """
@@ -352,8 +352,7 @@ node("${params.executorNode}") {
           }
           waitUntil {
             ngic_rtc_dp_output = sh returnStdout: true, script: """
-            ssh ngic-dp1 'cp -f ${basedir_config}/zmq-ng-core_cfg.mk ${basedir_dp1}/ngic-rtc/config/ng-core_cfg.mk'
-            ssh ngic-dp1 'cp -f ${basedir_config}/kni_Makefile ${basedir_dp1}/ngic-rtc/dp/Makefile'
+            ssh ngic-dp1 'cp -f ${basedir_dp1}/ngic-rtc/.ci/tc1/dp/custom-dp.mk ${basedir_dp1}/ngic-rtc/dp/custom-dp.mk'
             ssh ngic-dp1 'cd ${basedir_dp1}/ngic-rtc/dp && source ../setenv.sh && make clean && make'
             """
             echo "${ngic_rtc_dp_output}"

@@ -91,7 +91,7 @@ node("${params.executorNode}") {
 
                 if [ ${params.ghprbGhRepository} = ${ghRepository} ]; then
                     git fetch origin pull/${params.ghprbPullId}/head:jenkins_test || exit 1
-                    git checkout jenkins_test || exit 1
+                    git rebase master jenkins_test || exit 1
                     git log -1
                 fi
 

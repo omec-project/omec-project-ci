@@ -23,15 +23,23 @@ node("${params.executorNode}") {
   def base_log_dir = "${base_path}/${base_folder}"
 
   def action_make = '_make'
+  def action_install = '_install'
 
   def stdout_ext = '.stdout.log'
   def stderr_ext = '.stderr.log'
 
-  def mme_base_stdout_log = "cicd_openmme" + "${action_make}${stdout_ext}"
-  def mme_base_stderr_log = "cicd_openmme" + "${action_make}${stderr_ext}"
+  def mme_base_make_stdout_log = "cicd_openmme" + "${action_make}${stdout_ext}"
+  def mme_base_make_stderr_log = "cicd_openmme" + "${action_make}${stderr_ext}"
 
-  def mme_stdout_log = "${base_log_dir}/${mme_base_stdout_log}"
-  def mme_stderr_log = "${base_log_dir}/${mme_base_stderr_log}"
+  def mme_base_install_stdout_log = "cicd_openmme" + "${action_install}${stdout_ext}"
+  def mme_base_install_stderr_log = "cicd_openmme" + "${action_install}${stderr_ext}"
+
+  def mme_make_stdout_log = "${base_log_dir}/${mme_base_make_stdout_log}"
+  def mme_make_stderr_log = "${base_log_dir}/${mme_base_make_stderr_log}"
+
+  def mme_install_stdout_log = "${base_log_dir}/${mme_base_install_stdout_log}"
+  def mme_install_stderr_log = "${base_log_dir}/${mme_base_install_stderr_log}"
+
 
   timeout (60) {
     try {
@@ -100,17 +108,24 @@ node("${params.executorNode}") {
                 cp -f ${install_path}/wo-config/s11.json    ${install_path}/openmme/src/s11/conf/s11.json
                 cp -f ${install_path}/wo-config/s6a.json    ${install_path}/openmme/src/s6a/conf/s6a.json
                 cp -f ${install_path}/wo-config/s6a_fd.conf ${install_path}/openmme/src/s6a/conf/s6a_fd.conf
-
-                # TODO: temporary, to be removed once https://github.com/omec-project/openmme/issues/2 and 8 are fixed
-                # static certificates in openmme/src/mme-app/conf are expired
-                cp ${install_path}/wo-config/*.pem ${install_path}/openmme/src/s6a/conf/
                 '
             """
             echo "${c3po_mme1_output}"
             return true
           }
           sh returnStdout: true, script: """
-          ssh c3po-mme1 'cd ${install_path}/openmme && make clean && make 1>${mme_stdout_log} 2>${mme_stderr_log}'
+          ssh c3po-mme1 '
+              cd ${install_path}/openmme
+              make clean || exit 1
+              make 1>${mme_make_stdout_log} 2>${mme_make_stderr_log} || exit 1
+              make install 1>${mme_install_stdout_log} 2>${mme_install_stderr_log}
+              '
+          """
+          sh returnStdout: true, script: """
+          ssh c3po-mme1 '
+              cd ${install_path}/openmme/target/conf
+              ./make_certs.sh mme localdomain
+              '
           """
         }
       }

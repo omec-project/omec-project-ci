@@ -468,6 +468,7 @@ node("${params.executorNode}") {
               if pgrep -f [n]ettest; then pkill -f [n]ettest; fi
               # service hipped restart
               cd /opt/polaris-load-tester && ./stop.sh
+              sleep 2
               cd /opt/polaris-load-tester && ./start.sh
               sleep 5
               [[ \$(ps -ef | grep "[t]clsh NetTest-Server.tcl" | grep -v grep | wc -l) -eq 3 ]] || exit 1

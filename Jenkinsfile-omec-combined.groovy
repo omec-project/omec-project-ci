@@ -27,9 +27,19 @@ pipeline {
     stage('Install') {
       parallel {
 
-        stage('Install c3po') {
+        stage('Install c3po-hss') {
           steps {
-            build job: 'omec_c3po_install', parameters: [
+            build job: 'omec_c3po_hss_install', parameters: [
+                  string(name: 'ghprbActualCommit', value: "${ghprbActualCommit}"),
+                  string(name: 'ghprbGhRepository', value: "${ghprbGhRepository}"),
+                  string(name: 'ghprbPullId', value: "${ghprbPullId}"),
+                ]
+          }
+        }
+
+        stage('Install c3po-sgx') {
+          steps {
+            build job: 'omec_c3po_sgx_install', parameters: [
                   string(name: 'ghprbActualCommit', value: "${ghprbActualCommit}"),
                   string(name: 'ghprbGhRepository', value: "${ghprbGhRepository}"),
                   string(name: 'ghprbPullId', value: "${ghprbPullId}"),

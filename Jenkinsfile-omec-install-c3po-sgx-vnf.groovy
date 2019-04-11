@@ -1,4 +1,4 @@
-// Copyright 2017-present Open Networking Foundation
+// Copyright 2019-present Open Networking Foundation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,10 +23,8 @@ node("${params.executorNode}") {
   def base_folder = 'install'
   def base_log_dir = "${base_path}/${base_folder}"
 
-  def hss_app = 'hss'
   def sgx_app = 'sgx'
 
-  def hss_dir = "${base_log_dir}/${hss_app}"
   def sgx_dir = "${base_log_dir}/${sgx_app}"
 
   def action_inst = '_install'
@@ -34,13 +32,6 @@ node("${params.executorNode}") {
 
   def stdout_ext = '.stdout.log'
   def stderr_ext = '.stderr.log'
-
-  def hss_install_stdout_log = "${hss_dir}/" + "hss" + "${action_inst}${stdout_ext}"
-  def hss_install_stderr_log = "${hss_dir}/" + "hss" + "${action_inst}${stderr_ext}"
-  def hsssec_stdout_log = "${hss_dir}/" + "hsssec" + "${action_make}${stdout_ext}"
-  def hsssec_stderr_log = "${hss_dir}/" + "hsssec" + "${action_make}${stderr_ext}"
-  def hss_stdout_log = "${hss_dir}/" + "hss" + "${action_make}${stdout_ext}"
-  def hss_stderr_log = "${hss_dir}/" + "hss" + "${action_make}${stderr_ext}"
 
   def dealer_install_stdout_log = "${sgx_dir}/" + "dealer" + "${action_inst}${stdout_ext}"
   def dealer_install_stderr_log = "${sgx_dir}/" + "dealer" + "${action_inst}${stderr_ext}"
@@ -78,21 +69,7 @@ node("${params.executorNode}") {
             return true
           }
         }
-        timeout(1) {
-          waitUntil {
-            running_vms = sh returnStdout: true, script: """
-            virsh list --all | grep c3po-hss1 | grep -i running | wc -l
-            """
-            return running_vms.toInteger() == 1
-          }
-        }
         // Clean all logs
-        sh returnStdout: true, script: """
-        ssh c3po-hss1 '
-            if [ ! -d "${hss_dir}" ]; then mkdir -p ${hss_dir}; fi
-            rm -fr ${hss_dir}/*
-            '
-        """
         sh returnStdout: true, script: """
         ssh sgx-kms-cdr '
             if [ ! -d "${sgx_dir}" ]; then mkdir -p ${sgx_dir}; fi
@@ -101,54 +78,6 @@ node("${params.executorNode}") {
         """
       }
 
-      stage("clone c3po for HSS") {
-        timeout(20) {
-          sh returnStdout: true, script: """ssh c3po-hss1 'if pgrep -f [h]ss; then pkill -f [h]ss; fi'"""
-          waitUntil {
-            hss_c3po_clone_output = sh returnStdout: true, script: """
-            ssh c3po-hss1 '
-                cd ${install_path}
-                rm -rf c3po
-                git clone https://github.com/omec-project/c3po.git || exit 1
-                cd c3po
-
-                if [ ${params.ghprbGhRepository} = ${ghRepository} ]; then
-                    git fetch origin pull/${params.ghprbPullId}/head:jenkins_test || exit 1
-                    git rebase master jenkins_test || exit 1
-                    git log -1
-                fi
-                '
-            """
-            echo "${hss_c3po_clone_output}"
-            return true
-          }
-
-          waitUntil {
-            hss_dealer_in_output = sh returnStdout: true, script: """
-            ssh c3po-hss1 'cd ${install_path}/c3po && ./install.sh < ${install_path}/wo-config/hss-auto-install.txt 1>${hss_install_stdout_log} 2>${hss_install_stderr_log}'
-            """
-            echo "${hss_dealer_in_output}"
-            return true
-          }
-          sh returnStdout: true, script: """
-          ssh c3po-hss1 'cd ${install_path}/c3po/util && make clean && make 1>${hsssec_stdout_log} 2>${hsssec_stderr_log}'
-          ssh c3po-hss1 'cd ${install_path}/c3po/hsssec && make clean && make 1>>${hsssec_stdout_log} 2>>${hsssec_stderr_log}'
-          """
-
-          waitUntil {
-            hss_hss_output = sh returnStdout: true, script: """
-            ssh c3po-hss1 'cp -f ${install_path}/wo-config/hss.json ${install_path}/c3po/hss/conf/hss.json'
-
-            ssh c3po-hss1 'cd ${install_path}/c3po/hss/conf && ../bin/make_certs.sh hss openair4G.eur'
-            """
-            echo "${hss_hss_output}"
-            return true
-          }
-          sh returnStdout: true, script: """
-          ssh c3po-hss1 'cd ${install_path}/c3po/hss && make clean && make 1>${hss_stdout_log} 2>${hss_stderr_log}'
-          """
-        }
-      }
       stage("clone c3po for SGX") {
         timeout(20) {
           sh returnStdout: true, script: """
@@ -348,12 +277,6 @@ node("${params.executorNode}") {
       sh returnStdout: true, script: """
       rm -fr *
       """
-
-      try {
-        sh returnStdout: true, script: """
-        scp -r c3po-hss1:${hss_dir} .
-        """
-      } catch (err) {}
 
       try {
         sh returnStdout: true, script: """

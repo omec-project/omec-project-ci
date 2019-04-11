@@ -93,18 +93,24 @@ node("${params.executorNode}") {
                     git log -1
                 fi
 
-                cp -f ${install_path}/wo-config/dp_config.cfg ${install_path}/ngic-rtc/config/dp_config.cfg
-                cp -f ${install_path}/wo-config/interface.cfg ${install_path}/ngic-rtc/config/interface.cfg
+                # These files are copied in order to have a working config after this script is run.
+                # This can be useful when working in debug mode
+                cp -f ${install_path}/ngic-rtc/.ci/tc1/config/dp_config.cfg ${install_path}/ngic-rtc/config/dp_config.cfg
+                cp -f ${install_path}/ngic-rtc/.ci/tc1/config/interface.cfg ${install_path}/ngic-rtc/config/interface.cfg
+                cp -f ${install_path}/ngic-rtc/.ci/tc2/config/static_arp.cfg ${install_path}/ngic-rtc/config/static_arp.cfg
                 '
             """
             echo "${ngic_dp1_output}"
             return true
           }
           sh returnStdout: true, script: """
-          ssh ngic-dp1 'cd ${install_path}/ngic-rtc && ./install.sh < ${install_path}/wo-config/dp-auto-install-options.txt 1>${dp_stdout_log} 2>${dp_stderr_log}'
+          ssh ngic-dp1 '
+              cd ${install_path}/ngic-rtc
+              ./install.sh < ${install_path}/ngic-rtc/.ci/install/dp-auto-install-options.txt 1>${dp_stdout_log} 2>${dp_stderr_log}
+              '
           """
           sh returnStdout: true, script: """
-          ssh ngic-dp1 'cd ${install_path}/ngic-rtc/dp && source ../setenv.sh && make clean && make'
+          ssh ngic-dp1 'cd ${install_path}/ngic-rtc/dp && source ../setenv.sh && make clean && make -j\$(nproc)'
           """
         }
       }
@@ -127,18 +133,23 @@ node("${params.executorNode}") {
                     git log -1
                 fi
 
-                cp -f ${install_path}/wo-config/cp_config.cfg ${install_path}/ngic-rtc/config/cp_config.cfg
-                cp -f ${install_path}/wo-config/interface.cfg ${install_path}/ngic-rtc/config/interface.cfg
+                # These files are copied in order to have a working config after this script is run.
+                # This can be useful when working in debug mode
+                cp -f ${install_path}/ngic-rtc/.ci/tc1/config/cp_config.cfg ${install_path}/ngic-rtc/config/cp_config.cfg
+                cp -f ${install_path}/ngic-rtc/.ci/tc1/config/interface.cfg ${install_path}/ngic-rtc/config/interface.cfg
                 '
             """
             echo "${ngic_cp1_output}"
             return true
           }
           sh returnStdout: true, script: """
-          ssh ngic-cp1 'cd ${install_path}/ngic-rtc && ./install.sh < ${install_path}/wo-config/cp-auto-install-options.txt 1>${cp_stdout_log} 2>${cp_stderr_log}'
+          ssh ngic-cp1 '
+              cd ${install_path}/ngic-rtc
+              ./install.sh < ${install_path}/.ci/install/cp-auto-install-options.txt 1>${cp_stdout_log} 2>${cp_stderr_log}
+              '
           """
           sh returnStdout: true, script: """
-          ssh ngic-cp1 'cd ${install_path}/ngic-rtc/cp && source ../setenv.sh && make clean && make'
+          ssh ngic-cp1 'cd ${install_path}/ngic-rtc/cp && source ../setenv.sh && make clean && make -j\$(nproc)'
           """
         }
       }

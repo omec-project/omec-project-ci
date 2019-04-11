@@ -358,23 +358,29 @@ node("${params.executorNode}") {
         }
       }
       stage("make CP") {
-        sh returnStdout: true, script: """ssh ngic-cp1 'if pgrep -f [n]gic_controlplane; then pkill -f [n]gic_controlplane; fi'"""
         timeout(3) {
-          waitUntil {
-            ngic_rtc_cp_output = sh returnStdout: true, script: """
-            ssh ngic-cp1 '
-                cp -f ${basedir_cp1}/ngic-rtc/.ci/tc2/cp/custom-cp.mk ${basedir_cp1}/ngic-rtc/cp/custom-cp.mk
-                cd ${basedir_cp1}/ngic-rtc/cp && source ../setenv.sh && make clean && make -j\$(nproc)
-                '
-            """
-            echo "${ngic_rtc_cp_output}"
-            return true
-          }
+          sh returnStdout: true, script: """
+          ssh ngic-cp1 '
+              if pgrep -f [n]gic_controlplane; then pkill -f [n]gic_controlplane; fi
+              cp -f ${basedir_cp1}/ngic-rtc/.ci/tc2/config/cp_config.cfg ${basedir_cp1}/ngic-rtc/config/cp_config.cfg
+              cp -f ${basedir_cp1}/ngic-rtc/.ci/tc2/config/interface.cfg ${basedir_cp1}/ngic-rtc/config/interface.cfg
+
+              cp -f ${basedir_cp1}/ngic-rtc/.ci/tc2/cp/custom-cp.mk ${basedir_cp1}/ngic-rtc/cp/custom-cp.mk
+              cd ${basedir_cp1}/ngic-rtc/cp && source ../setenv.sh && make clean && make -j\$(nproc)
+              '
+          """
         }
       }
       stage("make DP") {
-        sh returnStdout: true, script: """ssh ngic-dp1 'if pgrep -f [n]gic_dataplane; then pkill -f [n]gic_dataplane; fi'"""
         timeout(3) {
+          sh returnStdout: true, script: """
+          ssh ngic-dp1 '
+              if pgrep -f [n]gic_dataplane; then pkill -f [n]gic_dataplane; fi
+              cp -f ${basedir_dp1}/ngic-rtc/.ci/tc2/config/dp_config.cfg ${basedir_dp1}/ngic-rtc/config/dp_config.cfg
+              cp -f ${basedir_dp1}/ngic-rtc/.ci/tc2/config/interface.cfg ${basedir_dp1}/ngic-rtc/config/interface.cfg
+              cp -f ${basedir_dp1}/ngic-rtc/.ci/tc2/config/static_arp.cfg ${basedir_dp1}/ngic-rtc/config/static_arp.cfg
+              '
+          """
           waitUntil {
             // Apply MRENCLAVE/MRSIGNER from dealer to ngic-rtc/config/interface.cfg
             ngic_rtc_output = sh returnStdout: true, script: """
@@ -393,17 +399,12 @@ node("${params.executorNode}") {
             echo "${ngic_rtc_output}"
             return true
           }
-          waitUntil {
-            ngic_rtc_dp_output = sh returnStdout: true, script: """
-            ssh ngic-dp1 '
-                cp -f ${basedir_config}/udp-static_arp.cfg ${basedir_dp1}/ngic-rtc/config/static_arp.cfg
-                cp -f ${basedir_dp1}/ngic-rtc/.ci/tc2/dp/custom-dp.mk ${basedir_dp1}/ngic-rtc/dp/custom-dp.mk
-                cd ${basedir_dp1}/ngic-rtc/dp && source ../setenv.sh && make clean && make -j\$(nproc)
-                '
-            """
-            echo "${ngic_rtc_dp_output}"
-            return true
-          }
+          sh returnStdout: true, script: """
+          ssh ngic-dp1 '
+              cp -f ${basedir_dp1}/ngic-rtc/.ci/tc2/dp/custom-dp.mk ${basedir_dp1}/ngic-rtc/dp/custom-dp.mk
+              cd ${basedir_dp1}/ngic-rtc/dp && source ../setenv.sh && make clean && make -j\$(nproc)
+              '
+          """
         }
       }
       stage("run ngic-rtc") {

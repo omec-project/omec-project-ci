@@ -163,9 +163,15 @@ node("${params.executorNode}") {
         timeout(2) {
           waitUntil {
             sgx_output = sh returnStdout: true, script: """
-            ssh sgx-kms-cdr 'cd ${basedir_sgx}/c3po/ctf && (stdbuf -o0 ./bin/ctf -j conf/ctf.json 2>${ctf_stderr_log} 1>${ctf_stdout_log} &)'
-            sleep 5;
-            ssh sgx-kms-cdr 'cd ${basedir_sgx}/c3po/cdf && (stdbuf -o0 ./bin/cdf -f conf/cdf.conf 2>${cdf_stderr_log} 1>${cdf_stdout_log} &)'
+            ssh sgx-kms-cdr '
+                cd ${basedir_sgx}/c3po/ctf
+                stdbuf -o0 ./bin/ctf -j conf/ctf.json 2>${ctf_stderr_log} 1>${ctf_stdout_log} &
+
+                sleep 5
+
+                cd ${basedir_sgx}/c3po/cdf
+                stdbuf -o0 ./bin/cdf -f conf/cdf.conf 2>${cdf_stderr_log} 1>${cdf_stdout_log} &
+                '
 
             ssh sgx-kms-cdr 'pgrep -l ctf || (cat ${ctf_stderr_log} && cat ${ctf_stdout_log} && exit 1)'
             ssh sgx-kms-cdr 'pgrep -l cdf || (cat ${cdf_stderr_log} && cat ${cdf_stdout_log} && exit 1)'
@@ -190,11 +196,20 @@ node("${params.executorNode}") {
         timeout(10) {
           waitUntil {
             router_output = sh returnStdout: true, script: """
-            ssh sgx-kms-cdr 'cd ${basedir_sgx}/c3po/sgxcdr/router && (stdbuf -o0 python start_and__monitor.py 2>${router_monitor_stderr_log} 1>${router_monitor_stdout_log} &)'
-            sleep 2;
-            ssh sgx-kms-cdr 'cd ${basedir_sgx}/c3po/sgxcdr/router && (stdbuf -o0 python in_queue_router.py 2>${in_queue_router_stderr_log} 1>${in_queue_router_stdout_log} &)'
-            sleep 2;
-            ssh sgx-kms-cdr 'cd ${basedir_sgx}/c3po/sgxcdr/router && (stdbuf -o0 python out_queue_router.py 2>${out_queue_router_stderr_log} 1>${out_queue_router_stdout_log} &)'
+            ssh sgx-kms-cdr '
+                cd ${basedir_sgx}/c3po/sgxcdr/router
+                stdbuf -o0 python start_and__monitor.py 2>${router_monitor_stderr_log} 1>${router_monitor_stdout_log} &
+
+                sleep 2
+
+                cd ${basedir_sgx}/c3po/sgxcdr/router
+                stdbuf -o0 python in_queue_router.py 2>${in_queue_router_stderr_log} 1>${in_queue_router_stdout_log} &
+
+                sleep 2
+
+                cd ${basedir_sgx}/c3po/sgxcdr/router
+                stdbuf -o0 python out_queue_router.py 2>${out_queue_router_stderr_log} 1>${out_queue_router_stdout_log} &
+                '
 
             ssh sgx-kms-cdr 'pgrep -a -fl start_and__monitor\\.py || (cat ${router_monitor_stderr_log} && cat ${router_monitor_stdout_log} && exit 1)'
             ssh sgx-kms-cdr 'pgrep -a -fl in_queue_router\\.py || (cat ${in_queue_router_stderr_log} && cat /${in_queue_router_stdout_log} && exit 1)'
@@ -221,12 +236,20 @@ node("${params.executorNode}") {
         timeout(3) {
           waitUntil {
             sgxcdr_output = sh returnStdout: true, script: """
-            ssh sgx-kms-cdr 'cd ${basedir_sgx}/c3po/sgxcdr/kms && (stdbuf -o0 ./kms -j conf/kms.json 2>${kms_stderr_log} 1>${kms_stdout_log} &)'
-            sleep 10;
-            ssh sgx-kms-cdr 'cd ${basedir_sgx}/c3po/sgxcdr/dealer && (stdbuf -o0 ./dealer -j conf/dealer.json 2>${dealer_stderr_log} 1>${dealer_stdout_log} &)'
-            sleep 5;
-            ssh sgx-kms-cdr 'cd ${basedir_sgx}/c3po/sgxcdr/dealer-out && (stdbuf -o0 ./dealer-out -j conf/dealer.json 2>${dealer_out_stderr_log} 1>${dealer_out_stdout_log} &)'
-            sleep 5;
+            ssh sgx-kms-cdr '
+                cd ${basedir_sgx}/c3po/sgxcdr/kms
+                stdbuf -o0 ./kms -j conf/kms.json 2>${kms_stderr_log} 1>${kms_stdout_log} &
+
+                sleep 10
+
+                cd ${basedir_sgx}/c3po/sgxcdr/dealer
+                stdbuf -o0 ./dealer -j conf/dealer.json 2>${dealer_stderr_log} 1>${dealer_stdout_log} &
+
+                sleep 5
+
+                cd ${basedir_sgx}/c3po/sgxcdr/dealer-out
+                stdbuf -o0 ./dealer-out -j conf/dealer.json 2>${dealer_out_stderr_log} 1>${dealer_out_stdout_log} &
+                '
 
             ssh sgx-kms-cdr 'pgrep -l kms || (cat ${kms_stderr_log} && cat ${kms_stdout_log} && exit 1)'
             ssh sgx-kms-cdr 'pgrep -xl dealer || (cat ${dealer_stderr_log} && cat ${dealer_stdout_log} && exit 1)'
@@ -265,7 +288,10 @@ node("${params.executorNode}") {
         timeout(2) {
           waitUntil {
             c3po_hss1_output = sh returnStdout: true, script: """
-            ssh c3po-hss1 'cd ${basedir_hss}/c3po/hss && (stdbuf -o0 ./bin/hss -j conf/hss.json 2>${hss_stderr_log} 1>${hss_stdout_log} &)'
+            ssh c3po-hss1 '
+                cd ${basedir_hss}/c3po/hss
+                stdbuf -o0 ./bin/hss -j conf/hss.json 2>${hss_stderr_log} 1>${hss_stdout_log} &
+                '
             sleep 5;
             ssh c3po-hss1 'pgrep -fl [h]ss || (cat ${hss_stderr_log} && cat ${hss_stdout_log} && exit 1)'
             """
@@ -297,13 +323,13 @@ node("${params.executorNode}") {
                 cd ${basedir_mme}/openmme/target
                 export LD_LIBRARY_PATH=./lib
 
-                (stdbuf -o0 ./bin/mme-app 2>${mme_stderr_log} 1>${mme_stdout_log} &)
+                stdbuf -o0 ./bin/mme-app 2>${mme_stderr_log} 1>${mme_stdout_log} &
                 sleep 2
-                (stdbuf -o0 ./bin/s1ap-app 2>${s1ap_stderr_log} 1>${s1ap_stdout_log} &)
+                stdbuf -o0 ./bin/s1ap-app 2>${s1ap_stderr_log} 1>${s1ap_stdout_log} &
                 sleep 2
-                (stdbuf -o0 ./bin/s11-app 2>${s11_stderr_log} 1>${s11_stdout_log} &)
+                stdbuf -o0 ./bin/s11-app 2>${s11_stderr_log} 1>${s11_stdout_log} &
                 sleep 2
-                (stdbuf -o0 ./bin/s6a-app 2>${s6a_stderr_log} 1>${s6a_stdout_log} &)
+                stdbuf -o0 ./bin/s6a-app 2>${s6a_stderr_log} 1>${s6a_stdout_log} &
                 sleep 2
                 '
             ssh c3po-mme1 'pgrep -fl [m]me-app || (cat ${mme_stderr_log} && cat ${mme_stdout_log} && exit 1)'
@@ -336,9 +362,10 @@ node("${params.executorNode}") {
         timeout(3) {
           waitUntil {
             ngic_rtc_cp_output = sh returnStdout: true, script: """
-            ssh ngic-cp1 'cp -f ${basedir_cp1}/ngic-rtc/.ci/tc2/cp/custom-cp.mk ${basedir_cp1}/ngic-rtc/cp/custom-cp.mk'
-            ssh ngic-cp1 'cd ${basedir_cp1}/ngic-rtc/cp && source ../setenv.sh && make clean && make'
-            sleep 2
+            ssh ngic-cp1 '
+                cp -f ${basedir_cp1}/ngic-rtc/.ci/tc2/cp/custom-cp.mk ${basedir_cp1}/ngic-rtc/cp/custom-cp.mk
+                cd ${basedir_cp1}/ngic-rtc/cp && source ../setenv.sh && make clean && make -j\$(nproc)
+                '
             """
             echo "${ngic_rtc_cp_output}"
             return true
@@ -361,16 +388,18 @@ node("${params.executorNode}") {
                 sed -i \"s/dealer_in_mrsigner *= *.*/dealer_in_mrsigner = \${MRSIGNER}/\" interface.cfg
 
                 grep -P \"dealer_in_mrenclave|dealer_in_mrsigner\" interface.cfg
-               '
+                '
             """
             echo "${ngic_rtc_output}"
             return true
           }
           waitUntil {
             ngic_rtc_dp_output = sh returnStdout: true, script: """
-            ssh ngic-dp1 'cp -f ${basedir_config}/udp-static_arp.cfg ${basedir_dp1}/ngic-rtc/config/static_arp.cfg'
-            ssh ngic-dp1 'cp -f ${basedir_dp1}/ngic-rtc/.ci/tc2/dp/custom-dp.mk ${basedir_dp1}/ngic-rtc/dp/custom-dp.mk'
-            ssh ngic-dp1 'cd ${basedir_dp1}/ngic-rtc/dp && source ../setenv.sh && make clean && make'
+            ssh ngic-dp1 '
+                cp -f ${basedir_config}/udp-static_arp.cfg ${basedir_dp1}/ngic-rtc/config/static_arp.cfg
+                cp -f ${basedir_dp1}/ngic-rtc/.ci/tc2/dp/custom-dp.mk ${basedir_dp1}/ngic-rtc/dp/custom-dp.mk
+                cd ${basedir_dp1}/ngic-rtc/dp && source ../setenv.sh && make clean && make -j\$(nproc)
+                '
             """
             echo "${ngic_rtc_dp_output}"
             return true
@@ -378,14 +407,25 @@ node("${params.executorNode}") {
         }
       }
       stage("run ngic-rtc") {
-        //TODO: TBC ssh ngic-dp1 'if [ \$(ls /dev/hugepages | wc -l) -ge 2032 ]; then rm -rf /dev/hugepages/* ;fi'
         timeout(3) {
           waitUntil {
             ngic_rtc_run_output = sh returnStdout: true, script: """
-            ssh ngic-dp1 'cd ${basedir_dp1}/ngic-rtc/dp && (stdbuf -o0 ./run.sh 1>${dp_stdout_log} 2>${dp_stderr_log} &)'
-            sleep 20;
-            ssh ngic-cp1 'cd ${basedir_cp1}/ngic-rtc/cp && (stdbuf -o0 ./run.sh 1>${cp_stdout_log} 2>${cp_stderr_log} &)'
-            sleep 5;
+            ssh ngic-dp1 '
+                cd ${basedir_dp1}/ngic-rtc/dp
+                stdbuf -o0 ./run.sh 1>${dp_stdout_log} 2>${dp_stderr_log} &
+
+                sleep 10
+                '
+
+            sleep 10
+
+            ssh ngic-cp1 '
+                cd ${basedir_cp1}/ngic-rtc/cp
+                stdbuf -o0 ./run.sh 1>${cp_stdout_log} 2>${cp_stderr_log} &
+                '
+
+            sleep 5
+
             ssh ngic-cp1 'pgrep -fl [n]gic_controlplane || (cat ${cp_stderr_log} && cat ${cp_stdout_log})'
             ssh ngic-dp1 'pgrep -fl [n]gic_dataplane || (cat ${dp_stderr_log} && cat ${dp_stdout_log})'
             """

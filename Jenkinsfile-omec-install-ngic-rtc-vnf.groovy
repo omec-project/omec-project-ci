@@ -145,7 +145,7 @@ node("${params.executorNode}") {
           sh returnStdout: true, script: """
           ssh ngic-cp1 '
               cd ${install_path}/ngic-rtc
-              ./install.sh < ${install_path}/.ci/install/cp-auto-install-options.txt 1>${cp_stdout_log} 2>${cp_stderr_log}
+              ./install.sh < ${install_path}/ngic-rtc/.ci/install/cp-auto-install-options.txt 1>${cp_stdout_log} 2>${cp_stderr_log}
               '
           """
           sh returnStdout: true, script: """

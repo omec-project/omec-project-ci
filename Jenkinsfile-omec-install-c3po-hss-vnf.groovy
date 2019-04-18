@@ -100,7 +100,7 @@ node("${params.executorNode}") {
 
           waitUntil {
             hss_dealer_in_output = sh returnStdout: true, script: """
-            ssh c3po-hss1 'cd ${install_path}/c3po && ./install.sh < ${install_path}/wo-config/hss-auto-install.txt 1>${hss_install_stdout_log} 2>${hss_install_stderr_log}'
+            ssh c3po-hss1 'cd ${install_path}/c3po && ./install.sh < ${install_path}/c3po/.ci/install/hss-auto-install.txt 1>${hss_install_stdout_log} 2>${hss_install_stderr_log}'
             """
             echo "${hss_dealer_in_output}"
             return true
@@ -112,7 +112,7 @@ node("${params.executorNode}") {
 
           waitUntil {
             hss_hss_output = sh returnStdout: true, script: """
-            ssh c3po-hss1 'cp -f ${install_path}/wo-config/hss.json ${install_path}/c3po/hss/conf/hss.json'
+            ssh c3po-hss1 'cp -f ${install_path}/c3po/.ci/config/hss.json ${install_path}/c3po/hss/conf/hss.json'
 
             ssh c3po-hss1 'cd ${install_path}/c3po/hss/conf && ../bin/make_certs.sh hss openair4G.eur'
             """

@@ -110,8 +110,8 @@ node("${params.executorNode}") {
 
           waitUntil {
             c3po_dealer_output = sh returnStdout: true, script: """
-            ssh sgx-kms-cdr 'cd ${install_path}/c3po/sgxcdr/dealer && ./install.sh < ${install_path}/wo-config/sgx-auto-install.txt 1>${dealer_install_stdout_log} 2>${dealer_install_stderr_log}'
-            ssh sgx-kms-cdr 'cp -f ${install_path}/wo-config/dealer-in.json ${install_path}/c3po/sgxcdr/dealer/conf/dealer.json'
+            ssh sgx-kms-cdr 'cd ${install_path}/c3po/sgxcdr/dealer && ./install.sh < ${install_path}/c3po/.ci/install/sgx-auto-install.txt 1>${dealer_install_stdout_log} 2>${dealer_install_stderr_log}'
+            ssh sgx-kms-cdr 'cp -f ${install_path}/c3po/.ci/config/dealer-in.json ${install_path}/c3po/sgxcdr/dealer/conf/dealer.json'
             """
             echo "${c3po_dealer_output}"
             return true
@@ -159,8 +159,8 @@ node("${params.executorNode}") {
         timeout(5) {
           waitUntil {
             c3po_kms_output = sh returnStdout: true, script: """
-            ssh sgx-kms-cdr 'cd ${install_path}/c3po/sgxcdr/kms && ./install.sh < ${install_path}/wo-config/sgx-auto-install.txt 1>${kms_install_stdout_log} 2>${kms_install_stderr_log}'
-            ssh sgx-kms-cdr 'cp -f ${install_path}/wo-config/kms.json ${install_path}/c3po/sgxcdr/kms/conf/kms.json'
+            ssh sgx-kms-cdr 'cd ${install_path}/c3po/sgxcdr/kms && ./install.sh < ${install_path}/c3po/.ci/install/sgx-auto-install.txt 1>${kms_install_stdout_log} 2>${kms_install_stderr_log}'
+            ssh sgx-kms-cdr 'cp -f ${install_path}/c3po/.ci/config/kms.json ${install_path}/c3po/sgxcdr/kms/conf/kms.json'
             """
             echo "${c3po_kms_output}"
             return true
@@ -177,7 +177,7 @@ node("${params.executorNode}") {
 
             ssh sgx-kms-cdr 'cd ${install_path}/c3po/sgxcdr/dealer-out && mv dealer dealer-out'
             ssh sgx-kms-cdr 'cd ${install_path}/c3po/sgxcdr/dealer-out && mkdir cdr'
-            ssh sgx-kms-cdr 'cp -f ${install_path}/wo-config/dealer-out.json ${install_path}/c3po/sgxcdr/dealer-out/conf/dealer.json'
+            ssh sgx-kms-cdr 'cp -f ${install_path}/c3po/.ci/config/dealer-out.json ${install_path}/c3po/sgxcdr/dealer-out/conf/dealer.json'
             """
             echo "${c3po_dealer_out_output}"
             return true
@@ -197,7 +197,7 @@ node("${params.executorNode}") {
         timeout(5) {
           waitUntil {
             c3po_ctf_output = sh returnStdout: true, script: """
-            ssh sgx-kms-cdr 'cp -f ${install_path}/wo-config/ctf.json ${install_path}/c3po/ctf/conf/ctf.json'
+            ssh sgx-kms-cdr 'cp -f ${install_path}/c3po/.ci/config/ctf.json ${install_path}/c3po/ctf/conf/ctf.json'
             """
             echo "${c3po_ctf_output}"
             return true
@@ -218,7 +218,7 @@ node("${params.executorNode}") {
         timeout(5) {
           waitUntil {
             c3po_cdf_output = sh returnStdout: true, script: """
-            ssh sgx-kms-cdr 'cp -f ${install_path}/wo-config/cdf.conf ${install_path}/c3po/cdf/conf/cdf.conf'
+            ssh sgx-kms-cdr 'cp -f ${install_path}/c3po/.ci/config/cdf.conf ${install_path}/c3po/cdf/conf/cdf.conf'
             """
             echo "${c3po_cdf_output}"
             return true

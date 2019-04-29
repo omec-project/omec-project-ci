@@ -103,11 +103,11 @@ node("${params.executorNode}") {
                     git log -1
                 fi
 
-                cp -f ${install_path}/wo-config/mme.json    ${install_path}/openmme/src/mme-app/conf/mme.json
-                cp -f ${install_path}/wo-config/s1ap.json   ${install_path}/openmme/src/s1ap/conf/s1ap.json
-                cp -f ${install_path}/wo-config/s11.json    ${install_path}/openmme/src/s11/conf/s11.json
-                cp -f ${install_path}/wo-config/s6a.json    ${install_path}/openmme/src/s6a/conf/s6a.json
-                cp -f ${install_path}/wo-config/s6a_fd.conf ${install_path}/openmme/src/s6a/conf/s6a_fd.conf
+                cp -f ${install_path}/openmme/.ci/config/mme.json    ${install_path}/openmme/src/mme-app/conf/mme.json
+                cp -f ${install_path}/openmme/.ci/config/s1ap.json   ${install_path}/openmme/src/s1ap/conf/s1ap.json
+                cp -f ${install_path}/openmme/.ci/config/s11.json    ${install_path}/openmme/src/s11/conf/s11.json
+                cp -f ${install_path}/openmme/.ci/config/s6a.json    ${install_path}/openmme/src/s6a/conf/s6a.json
+                cp -f ${install_path}/openmme/.ci/config/s6a_fd.conf ${install_path}/openmme/src/s6a/conf/s6a_fd.conf
                 '
             """
             echo "${c3po_mme1_output}"

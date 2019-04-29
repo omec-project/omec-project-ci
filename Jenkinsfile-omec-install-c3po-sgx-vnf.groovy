@@ -108,18 +108,6 @@ node("${params.executorNode}") {
             return true
           }
 
-          // TODO: temporary, to be removed once https://github.com/omec-project/c3po/pull/19 is merged
-          waitUntil {
-            sgx_kms_patch_output = sh returnStdout: true, script: """
-            ssh sgx-kms-cdr '
-                cp -f ${install_path}/wo-config/ias-ra.c ${install_path}/c3po/sgxcdr/kms/App/ias-ra.c
-                cp -f ${install_path}/wo-config/ias-ra.c ${install_path}/c3po/sgxcdr/dealer/App/ias-ra.c
-                '
-            """
-            echo "Temporary: " + "${sgx_kms_patch_output}"
-            return true
-          }
-
           waitUntil {
             c3po_dealer_output = sh returnStdout: true, script: """
             ssh sgx-kms-cdr 'cd ${install_path}/c3po/sgxcdr/dealer && ./install.sh < ${install_path}/wo-config/sgx-auto-install.txt 1>${dealer_install_stdout_log} 2>${dealer_install_stderr_log}'

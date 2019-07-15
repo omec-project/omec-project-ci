@@ -419,9 +419,10 @@ node("${params.executorNode}") {
                 cd ${basedir_dp1}/ngic-rtc/dp
                 stdbuf -o0 ./run.sh 1>${dp_stdout_log} 2>${dp_stderr_log} &
 
-                sleep 10
+                date +"%Y-%m-%d %H:%M:%S.%3N"
+                sleep 20;
+                date +"%Y-%m-%d %H:%M:%S.%3N"
 
-                sleep 10
                 cd ${basedir_dp1}/ngic-rtc/kni_ifcfg && ./kni-SGIdevcfg.sh
                 cd ${basedir_dp1}/ngic-rtc/kni_ifcfg && ./kni-S1Udevcfg.sh
                 '

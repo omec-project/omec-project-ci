@@ -473,7 +473,7 @@ node("${params.executorNode}") {
               cd /opt/polaris-load-tester && ./stop.sh
               cd /opt/polaris-load-tester && ./start.sh
               sleep 5
-              [[ \$(ps -ef | grep "[t]clsh NetTest-Server.tcl" | grep -v grep | wc -l) -eq 3 ]] || exit 1
+              [[ \$(ps -ef | grep "[t]clsh NetTest-Server.tcl" | grep -v grep | wc -l) -eq 2 ]] || exit 1
               ifconfig ens802f0 11.7.1.101/24 up
               ifconfig ens802f1 13.7.1.110/24 up
               '

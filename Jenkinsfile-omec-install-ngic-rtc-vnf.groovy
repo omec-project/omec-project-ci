@@ -88,9 +88,28 @@ node("${params.executorNode}") {
                 cd ngic-rtc
 
                 if [ ${params.ghprbGhRepository} = ${ghRepository} ]; then
+                    # Clone repo.
                     git fetch origin pull/${params.ghprbPullId}/head:jenkins_test || exit 1
-                    git rebase master jenkins_test || exit 1
+                    git checkout jenkins_test
                     git log -1
+
+                    # Check that the merge base between master and PR is master HEAD.
+                    if [[ \$(git merge-base jenkins_test master) != \$(git rev-parse master) ]]; then
+
+                        message=(
+                            ""
+                            "*******************************************"
+                            "*                                         *"
+                            "* PR is not based on current master HEAD. *"
+                            "* Please rebase your code on master.      *"
+                            "*                                         *"
+                            "*******************************************"
+                            ""
+                        )
+                        printf "%s\\n" "\${message[@]}"
+
+                        exit 1
+                    fi
                 fi
 
                 # These files are copied in order to have a working config after this script is run.

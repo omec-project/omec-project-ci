@@ -153,7 +153,7 @@ node("${params.executorNode}") {
 
         sh returnStdout: true, script: """
         ssh ng40 '
-            cd /home/ng40/config/ng40cvnf/testlist/log && rm -f ${test_output_log}
+            cd /home/ng40/config/ng40cvnf/testlist/log
         '"""
 
       }

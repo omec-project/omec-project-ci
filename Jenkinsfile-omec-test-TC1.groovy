@@ -146,9 +146,14 @@ node("${params.executorNode}") {
             rm -fr ${sgx_dir}/*
         '
         """
-        sh returnStdout: true, script: """
+        /*sh returnStdout: true, script: """
         ssh polaris '
             cd /root/LTELoadTester && rm -f ${test_output_log}
+        '"""*/
+
+        sh returnStdout: true, script: """
+        ssh ng40 '
+            cd /home/ng40/config/ng40cvnf/testlist/log && rm -f ${test_output_log}
         '"""
 
       }
@@ -420,7 +425,7 @@ node("${params.executorNode}") {
                 stdbuf -o0 ./run.sh 1>${dp_stdout_log} 2>${dp_stderr_log} &
 
                 date +"%Y-%m-%d %H:%M:%S.%3N"
-                sleep 20;
+                sleep 40;
                 date +"%Y-%m-%d %H:%M:%S.%3N"
 
                 cd ${basedir_dp1}/ngic-rtc/kni_ifcfg && ./kni-SGIdevcfg.sh
@@ -464,33 +469,14 @@ node("${params.executorNode}") {
         """
         echo "${check_process_output}"
       }
-      stage("test polaris") {
+      stage("test ng40") {
         timeout(10) {
           sh returnStdout: true, script: """
-          ssh polaris '
-              if pgrep -f [n]ettest; then pkill -f [n]ettest; fi
-              # service hipped restart
-              cd /opt/polaris-load-tester && ./stop.sh
-              cd /opt/polaris-load-tester && ./start.sh
-              sleep 5
-              [[ \$(ps -ef | grep "[t]clsh NetTest-Server.tcl" | grep -v grep | wc -l) -eq 2 ]] || exit 1
-              ifconfig ens802f0 11.7.1.101/24 up
-              ifconfig ens802f1 13.7.1.110/24 up
+          ssh ng40 '
+              cd config/ng40cvnf/testlist && ng40test run.ntl
               '
           """
-          waitUntil {
-            test_output = sh returnStdout: true, script: """
-            ssh polaris 'cd /root/LTELoadTester && nettest -emulator 127.0.0.1:5678:enb,127.0.0.1:6789:ipte Attach-Detach-wdata.tcl > ${test_output_log}'
-            ssh polaris 'cd /root/LTELoadTester && cat ${test_output_log}'
-            sleep 1
-            """
-            echo "Polaris log: ${test_output}"
-            return true
-          }
         }
-        sh returnStdout: true, script: """
-        ssh polaris 'cd /root/LTELoadTester && grep -P -o "Test pass percentage.*?100%" ${test_output_log}'
-        """
       }
       stage("test sgx-dp") {
         timeout(time: 20, unit: 'SECONDS')  {

@@ -69,14 +69,9 @@ pipeline {
       }
     }
 
-    stage('ZMQ-KNI Regression TC1') {
+    stage('Attach_DataFlow_Detach Regression TC1') {
       steps {
         build job: 'omec_tc1'
-      }
-    }
-    stage('UDP-STATIC_ARP Regression TC2') {
-      steps {
-        build job: 'omec_tc2'
       }
     }
   }

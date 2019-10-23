@@ -152,7 +152,7 @@ node("${params.executorNode}") {
         '"""*/
 
         sh returnStdout: true, script: """
-        ssh ng40 '
+        ssh ng40@10.5.4.101 '
             cd /home/ng40/config/ng40cvnf/testlist/log
         '"""
 
@@ -472,7 +472,7 @@ node("${params.executorNode}") {
       stage("test ng40") {
         timeout(10) {
           sh returnStdout: true, script: """
-          ssh ng40 '
+          ssh ng40@10.5.4.101 '
               cd config/ng40cvnf/testlist && ng40test run.ntl
               '
           """

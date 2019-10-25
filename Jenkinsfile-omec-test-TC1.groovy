@@ -24,7 +24,7 @@ node("${params.executorNode}") {
 
 
   def test_case = 'TC1_zmq_kni'
-  def test_output_log = 'test_output_TC1_zmq_kni.log'
+  def test_output_log = ''
 
   def base_path = '/var/log/cicd'
   def base_folder = 'test'
@@ -146,15 +146,12 @@ node("${params.executorNode}") {
             rm -fr ${sgx_dir}/*
         '
         """
-        /*sh returnStdout: true, script: """
-        ssh polaris '
-            cd /root/LTELoadTester && rm -f ${test_output_log}
-        '"""*/
 
         sh returnStdout: true, script: """
-        ssh ng40@10.5.4.101 '
+        ssh ng40@ilnperf7 '
             cd /home/ng40/config/ng40cvnf/testlist/log
-        '"""
+        '
+        """
 
       }
       stage("c3po-ctf/cdf") {
@@ -471,11 +468,23 @@ node("${params.executorNode}") {
       }
       stage("test ng40") {
         timeout(10) {
-          sh returnStdout: true, script: """
-          ssh ng40@10.5.4.101 '
-              cd config/ng40cvnf/testlist && ng40test run.ntl
-              '
-          """
+          try {
+              sh returnStdout: true, script: """
+              ssh ng40@ilnperf7 'cd config/ng40cvnf/testlist && ng40test run.ntl'
+              """
+          } finally {
+            //Get log filename.
+            test_output_log = sh returnStdout: true, script: """
+            ssh ng40@ilnperf7 'ls -Art /home/ng40/config/ng40cvnf/testlist/log | tail -n 1'
+            """
+            test_output_log = test_output_log.trim()
+
+            //Display log.
+            test_output = sh returnStdout: true, script: """
+            ssh ng40@ilnperf7 'cat /home/ng40/config/ng40cvnf/testlist/log/${test_output_log}'
+            """
+            echo "${test_output}"
+          }
         }
       }
       stage("test sgx-dp") {
@@ -560,7 +569,7 @@ node("${params.executorNode}") {
 
       try {
         sh returnStdout: true, script: """
-        scp polaris:/root/LTELoadTester/${test_output_log} .
+        scp ng40@ilnperf7:/home/ng40/config/ng40cvnf/testlist/log/${test_output_log} .
         """
       } catch (err) {}
 

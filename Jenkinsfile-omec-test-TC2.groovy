@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-node("${params.executorNode}") {
+node("${params.buildNode}") {
 
   def basedir_config = '/home/jenkins/wo-config'
 

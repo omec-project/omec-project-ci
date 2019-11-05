@@ -19,7 +19,7 @@ pipeline {
 
   /* executor is determined by parameter */
   agent {
-    label "${params.executorNode}"
+    label "${params.buildNode}"
   }
 
   stages {

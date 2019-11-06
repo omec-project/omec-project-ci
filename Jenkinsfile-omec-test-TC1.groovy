@@ -24,7 +24,7 @@ node("${params.buildNode}") {
 
 
   def test_case = 'TC1_zmq_kni'
-  def test_output_log = 'test_output_TC1_zmq_kni.log'
+  def test_output_log = ''
 
   def base_path = '/var/log/cicd'
   def base_folder = 'test'
@@ -146,10 +146,12 @@ node("${params.buildNode}") {
             rm -fr ${sgx_dir}/*
         '
         """
+
         sh returnStdout: true, script: """
-        ssh polaris '
-            cd /root/LTELoadTester && rm -f ${test_output_log}
-        '"""
+        ssh ng40@ilnperf7 '
+            cd /home/ng40/config/ng40cvnf/testlist/log
+        '
+        """
 
       }
       stage("c3po-ctf/cdf") {
@@ -420,7 +422,7 @@ node("${params.buildNode}") {
                 stdbuf -o0 ./run.sh 1>${dp_stdout_log} 2>${dp_stderr_log} &
 
                 date +"%Y-%m-%d %H:%M:%S.%3N"
-                sleep 20;
+                sleep 40;
                 date +"%Y-%m-%d %H:%M:%S.%3N"
 
                 cd ${basedir_dp1}/ngic-rtc/kni_ifcfg && ./kni-SGIdevcfg.sh
@@ -464,33 +466,26 @@ node("${params.buildNode}") {
         """
         echo "${check_process_output}"
       }
-      stage("test polaris") {
+      stage("test ng40") {
         timeout(10) {
-          sh returnStdout: true, script: """
-          ssh polaris '
-              if pgrep -f [n]ettest; then pkill -f [n]ettest; fi
-              # service hipped restart
-              cd /opt/polaris-load-tester && ./stop.sh
-              cd /opt/polaris-load-tester && ./start.sh
-              sleep 5
-              [[ \$(ps -ef | grep "[t]clsh NetTest-Server.tcl" | grep -v grep | wc -l) -eq 2 ]] || exit 1
-              ifconfig ens802f0 11.7.1.101/24 up
-              ifconfig ens802f1 13.7.1.110/24 up
-              '
-          """
-          waitUntil {
-            test_output = sh returnStdout: true, script: """
-            ssh polaris 'cd /root/LTELoadTester && nettest -emulator 127.0.0.1:5678:enb,127.0.0.1:6789:ipte Attach-Detach-wdata.tcl > ${test_output_log}'
-            ssh polaris 'cd /root/LTELoadTester && cat ${test_output_log}'
-            sleep 1
+          try {
+              sh returnStdout: true, script: """
+              ssh ng40@ilnperf7 'cd config/ng40cvnf/testlist && ng40test run.ntl'
+              """
+          } finally {
+            //Get log filename.
+            test_output_log = sh returnStdout: true, script: """
+            ssh ng40@ilnperf7 'ls -Art /home/ng40/config/ng40cvnf/testlist/log | tail -n 1'
             """
-            echo "Polaris log: ${test_output}"
-            return true
+            test_output_log = test_output_log.trim()
+
+            //Display log.
+            test_output = sh returnStdout: true, script: """
+            ssh ng40@ilnperf7 'cat /home/ng40/config/ng40cvnf/testlist/log/${test_output_log}'
+            """
+            echo "${test_output}"
           }
         }
-        sh returnStdout: true, script: """
-        ssh polaris 'cd /root/LTELoadTester && grep -P -o "Test pass percentage.*?100%" ${test_output_log}'
-        """
       }
       stage("test sgx-dp") {
         timeout(time: 20, unit: 'SECONDS')  {
@@ -574,7 +569,7 @@ node("${params.buildNode}") {
 
       try {
         sh returnStdout: true, script: """
-        scp polaris:/root/LTELoadTester/${test_output_log} .
+        scp ng40@ilnperf7:/home/ng40/config/ng40cvnf/testlist/log/${test_output_log} .
         """
       } catch (err) {}
 

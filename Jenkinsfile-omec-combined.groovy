@@ -63,6 +63,7 @@ pipeline {
                   string(name: 'ghprbActualCommit', value: "${ghprbActualCommit}"),
                   string(name: 'ghprbGhRepository', value: "${ghprbGhRepository}"),
                   string(name: 'ghprbPullId', value: "${ghprbPullId}"),
+                  string(name: 'ghprbTargetBranch', value: "${ghprbTargetBranch}"),
                 ]
           }
         }

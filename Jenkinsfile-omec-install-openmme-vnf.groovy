@@ -96,10 +96,11 @@ node("${params.buildNode}") {
                 rm -rf openmme
                 git clone https://github.com/omec-project/openmme.git || exit 1
                 cd openmme
+                git checkout ${params.ghprbTargetBranch}
 
                 if [ ${params.ghprbGhRepository} = ${ghRepository} ]; then
-                    git fetch origin pull/${params.ghprbPullId}/head:jenkins_test || exit 1
-                    git rebase master jenkins_test || exit 1
+                    git fetch origin pull/${params.ghprbPullId}/head:FETCH_HEAD || exit 1
+                    git rebase ${params.ghprbTargetBranch} FETCH_HEAD || exit 1
                     git log -1
                 fi
 

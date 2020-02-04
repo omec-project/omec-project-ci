@@ -86,10 +86,11 @@ node("${params.buildNode}") {
                 rm -rf ngic-rtc
                 git clone https://github.com/omec-project/ngic-rtc.git || exit 1
                 cd ngic-rtc
+                git checkout ${params.ghprbTargetBranch}
 
                 if [ ${params.ghprbGhRepository} = ${ghRepository} ]; then
-                    git fetch origin pull/${params.ghprbPullId}/head:jenkins_test || exit 1
-                    git rebase master jenkins_test || exit 1
+                    git fetch origin pull/${params.ghprbPullId}/head:FETCH_HEAD || exit 1
+                    git rebase ${params.ghprbTargetBranch} FETCH_HEAD || exit 1
                     git log -1
                 fi
 
@@ -126,10 +127,11 @@ node("${params.buildNode}") {
                 rm -rf ngic-rtc
                 git clone https://github.com/omec-project/ngic-rtc.git || exit 1
                 cd ngic-rtc
+                git checkout ${params.ghprbTargetBranch}
 
                 if [ ${params.ghprbGhRepository} = ${ghRepository} ]; then
-                    git fetch origin pull/${params.ghprbPullId}/head:jenkins_test || exit 1
-                    git rebase master jenkins_test || exit 1
+                    git fetch origin pull/${params.ghprbPullId}/head:FETCH_HEAD || exit 1
+                    git rebase ${params.ghprbTargetBranch} FETCH_HEAD || exit 1
                     git log -1
                 fi
 

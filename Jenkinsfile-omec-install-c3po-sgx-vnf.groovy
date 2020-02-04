@@ -51,10 +51,11 @@ node("${params.buildNode}") {
               rm -rf c3po
               git clone https://github.com/omec-project/c3po.git || exit 1
               cd c3po
+              git checkout ${params.ghprbTargetBranch}
 
               if [ ${params.ghprbGhRepository} = ${ghRepository} ]; then
-                  git fetch origin pull/${params.ghprbPullId}/head:jenkins_test || exit 1
-                  git rebase master jenkins_test || exit 1
+                  git fetch origin pull/${params.ghprbPullId}/head:FETCH_HEAD || exit 1
+                  git rebase ${params.ghprbTargetBranch} FETCH_HEAD || exit 1
                   git log -1
               fi
               '

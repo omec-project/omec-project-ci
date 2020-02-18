@@ -93,15 +93,15 @@ node("${params.buildNode}") {
                     git checkout jenkins_test
                     git log -1
 
-                    # Check that the merge base between master and PR is master HEAD.
-                    if [[ \$(git merge-base jenkins_test master) != \$(git rev-parse master) ]]; then
+                    # Check that the merge base between target branch and PR is target branch HEAD.
+                    if [[ \$(git merge-base jenkins_test ${params.ghprbTargetBranch}) != \$(git rev-parse ${params.ghprbTargetBranch}) ]]; then
 
                         message=(
                             ""
                             "*******************************************"
                             "*                                         *"
-                            "* PR is not based on current master HEAD. *"
-                            "* Please rebase your code on master.      *"
+                            "* PR is not based on current ${params.ghprbTargetBranch} HEAD. *"
+                            "* Please rebase your code on ${params.ghprbTargetBranch}.      *"
                             "*                                         *"
                             "*******************************************"
                             ""
@@ -148,8 +148,26 @@ node("${params.buildNode}") {
 
                 if [ ${params.ghprbGhRepository} = ${ghRepository} ]; then
                     git fetch origin pull/${params.ghprbPullId}/head:jenkins_test || exit 1
-                    git rebase master jenkins_test || exit 1
+                    git checkout jenkins_test
                     git log -1
+
+                    # Check that the merge base between target branch and PR is target branch HEAD.
+                    if [[ \$(git merge-base jenkins_test ${params.ghprbTargetBranch}) != \$(git rev-parse ${params.ghprbTargetBranch}) ]]; then
+
+                        message=(
+                            ""
+                            "*******************************************"
+                            "*                                         *"
+                            "* PR is not based on current ${params.ghprbTargetBranch} HEAD. *"
+                            "* Please rebase your code on ${params.ghprbTargetBranch}.      *"
+                            "*                                         *"
+                            "*******************************************"
+                            ""
+                        )
+                        printf "%s\\n" "\${message[@]}"
+
+                        exit 1
+                    fi
                 fi
 
                 # These files are copied in order to have a working config after this script is run.

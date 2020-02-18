@@ -103,15 +103,15 @@ node("${params.buildNode}") {
                     git checkout jenkins_test
                     git log -1
 
-                    # Check that the merge base between master and PR is master HEAD.
-                    if [[ \$(git merge-base jenkins_test master) != \$(git rev-parse master) ]]; then
+                    # Check that the merge base between target branch and PR is target branch HEAD.
+                    if [[ \$(git merge-base jenkins_test ${params.ghprbTargetBranch}) != \$(git rev-parse ${params.ghprbTargetBranch}) ]]; then
 
                         message=(
                             ""
                             "*******************************************"
                             "*                                         *"
-                            "* PR is not based on current master HEAD. *"
-                            "* Please rebase your code on master.      *"
+                            "* PR is not based on current ${params.ghprbTargetBranch} HEAD. *"
+                            "* Please rebase your code on ${params.ghprbTargetBranch}.      *"
                             "*                                         *"
                             "*******************************************"
                             ""

@@ -94,7 +94,7 @@ node("${params.buildNode}") {
             ssh c3po-mme1 '
                 cd ${install_path}
                 rm -rf openmme
-                git clone https://github.com/omec-project/openmme.git || exit 1
+                git clone https://github.com/omec-project/openmme.git -b ${params.branch} || exit 1
                 cd openmme
 
                 if [ ${params.ghprbGhRepository} = ${ghRepository} ]; then

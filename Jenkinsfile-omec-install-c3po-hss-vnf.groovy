@@ -47,7 +47,7 @@ node("${params.buildNode}") {
 
               cd ${install_path}
               rm -rf c3po
-              git clone https://github.com/omec-project/c3po.git || exit 1
+              git clone https://github.com/omec-project/c3po.git -b ${params.branch} || exit 1
               cd c3po
 
               if [ ${params.ghprbGhRepository} = ${ghRepository} ]; then

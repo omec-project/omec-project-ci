@@ -84,7 +84,7 @@ node("${params.buildNode}") {
             ssh ngic-dp1 '
                 cd ${install_path}
                 rm -rf ngic-rtc
-                git clone https://github.com/omec-project/ngic-rtc.git || exit 1
+                git clone https://github.com/omec-project/ngic-rtc.git -b ${params.branch} || exit 1
                 cd ngic-rtc
 
                 if [ ${params.ghprbGhRepository} = ${ghRepository} ]; then
@@ -144,7 +144,7 @@ node("${params.buildNode}") {
             ssh ngic-cp1 '
                 cd ${install_path}
                 rm -rf ngic-rtc
-                git clone https://github.com/omec-project/ngic-rtc.git || exit 1
+                git clone https://github.com/omec-project/ngic-rtc.git -b ${params.branch} || exit 1
                 cd ngic-rtc
 
                 if [ ${params.ghprbGhRepository} = ${ghRepository} ]; then

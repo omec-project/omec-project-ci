@@ -61,8 +61,25 @@ pipeline {
         }
 
         stage('Install openmme') {
+          when {
+            expression { params.mmeRepo == 'openmme' }
+          }
           steps {
             build job: 'omec_openmme_install', parameters: [
+                  string(name: 'ghprbActualCommit', value: "${ghprbActualCommit}"),
+                  string(name: 'ghprbGhRepository', value: "${ghprbGhRepository}"),
+                  string(name: 'ghprbPullId', value: "${ghprbPullId}"),
+                  string(name: 'ghprbTargetBranch', value: "${ghprbTargetBranch}"),
+                ]
+          }
+        }
+
+        stage('Install Nucleus') {
+          when {
+            expression { params.mmeRepo == 'Nucleus' }
+          }
+          steps {
+            build job: 'omec_Nucleus_install', parameters: [
                   string(name: 'ghprbActualCommit', value: "${ghprbActualCommit}"),
                   string(name: 'ghprbGhRepository', value: "${ghprbGhRepository}"),
                   string(name: 'ghprbPullId', value: "${ghprbPullId}"),
@@ -75,12 +92,16 @@ pipeline {
 
     stage('ZMQ-KNI Regression TC1') {
       steps {
-        build job: 'omec_tc1'
+        build job: 'omec_tc1', parameters: [
+              string(name: 'mmeRepo', value: "${params.mmeRepo}"),
+            ]
       }
     }
     stage('UDP-STATIC_ARP Regression TC2') {
       steps {
-        build job: 'omec_tc2'
+        build job: 'omec_tc2', parameters: [
+              string(name: 'mmeRepo', value: "${params.mmeRepo}"),
+            ]
       }
     }
   }

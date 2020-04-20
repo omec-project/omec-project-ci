@@ -31,12 +31,12 @@ node("${params.buildNode}") {
   def base_log_dir = "${base_path}/${base_folder}"
 
   def ngic_app = 'ngic-rtc'
-  def openmme_app = 'openmme'
+  def mme_app = 'mme'
   def hss_app = 'c3po-hss'
   def sgx_app = 'c3po-sgx'
 
   def ngic_dir = "${base_log_dir}/${ngic_app}"
-  def openmme_dir = "${base_log_dir}/${openmme_app}"
+  def mme_dir = "${base_log_dir}/${mme_app}"
   def hss_dir = "${base_log_dir}/${hss_app}"
   def sgx_dir = "${base_log_dir}/${sgx_app}"
 
@@ -50,15 +50,15 @@ node("${params.buildNode}") {
   def dp_stdout_log = "${ngic_dir}/" + "dp1_" + "${test_case}" + "${stdout_ext}"
   def dp_stderr_log = "${ngic_dir}/" + "dp1_" + "${test_case}" + "${stderr_ext}"
 
-  // openmme logs
-  def mme_stdout_log = "${openmme_dir}/" + "mme_app" + "${stdout_ext}"
-  def mme_stderr_log = "${openmme_dir}/" + "mme_app" + "${stderr_ext}"
-  def s1ap_stdout_log = "${openmme_dir}/" + "s1ap_app" + "${stdout_ext}"
-  def s1ap_stderr_log = "${openmme_dir}/" + "s1ap_app" + "${stderr_ext}"
-  def s11_stdout_log = "${openmme_dir}/" + "s11_app" + "${stdout_ext}"
-  def s11_stderr_log = "${openmme_dir}/" + "s11_app" + "${stderr_ext}"
-  def s6a_stdout_log = "${openmme_dir}/" + "s6a_app" + "${stdout_ext}"
-  def s6a_stderr_log = "${openmme_dir}/" + "s6a_app" + "${stderr_ext}"
+  // mme logs
+  def mme_stdout_log = "${mme_dir}/" + "mme_app" + "${stdout_ext}"
+  def mme_stderr_log = "${mme_dir}/" + "mme_app" + "${stderr_ext}"
+  def s1ap_stdout_log = "${mme_dir}/" + "s1ap_app" + "${stdout_ext}"
+  def s1ap_stderr_log = "${mme_dir}/" + "s1ap_app" + "${stderr_ext}"
+  def s11_stdout_log = "${mme_dir}/" + "s11_app" + "${stdout_ext}"
+  def s11_stderr_log = "${mme_dir}/" + "s11_app" + "${stderr_ext}"
+  def s6a_stdout_log = "${mme_dir}/" + "s6a_app" + "${stdout_ext}"
+  def s6a_stderr_log = "${mme_dir}/" + "s6a_app" + "${stderr_ext}"
 
   // c3po-hss logs
   def hss_stdout_log = "${hss_dir}/" + "hss" + "${stdout_ext}"
@@ -132,8 +132,8 @@ node("${params.buildNode}") {
         """
         sh returnStdout: true, script: """
         ssh c3po-mme1 '
-            if [ ! -d "${openmme_dir}" ]; then mkdir -p ${openmme_dir}; fi
-            rm -fr ${openmme_dir}/*
+            if [ ! -d "${mme_dir}" ]; then mkdir -p ${mme_dir}; fi
+            rm -fr ${mme_dir}/*
             '
         """
         sh returnStdout: true, script: """
@@ -316,6 +316,7 @@ node("${params.buildNode}") {
             if pgrep -f [s]11-app; then pkill -f [s]11-app; fi
             sleep 1
             if pgrep -f [s]6a-app; then pkill -f [s]6a-app; fi
+            sleep 5
             ps -e | grep -P "(mme|s11|s1ap|s6a)-app" | grep -v grep && exit 1 || echo "no running process found"
             '
         """
@@ -324,7 +325,7 @@ node("${params.buildNode}") {
           waitUntil {
             c3po_mme1_output = sh returnStdout: true, script: """
             ssh c3po-mme1 '
-                cd ${basedir_mme}/openmme/target
+                cd ${basedir_mme}/${params.mmeRepo}/target
                 export LD_LIBRARY_PATH=./lib
 
                 stdbuf -o0 ./bin/mme-app 2>${mme_stderr_log} 1>${mme_stdout_log} &
@@ -567,7 +568,7 @@ node("${params.buildNode}") {
 
       try {
         sh returnStdout: true, script: """
-        scp -r c3po-mme1:${openmme_dir} .
+        scp -r c3po-mme1:${mme_dir} .
         """
       } catch (err) {}
 

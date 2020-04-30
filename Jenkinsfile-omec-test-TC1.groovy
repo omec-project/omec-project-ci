@@ -289,6 +289,16 @@ node("${params.buildNode}") {
         sh returnStdout: true, script: """ssh sgx-kms-cdr 'pgrep -x dealer'"""
         sh returnStdout: true, script: """ssh sgx-kms-cdr 'pgrep -x dealer-out'"""
       }
+      stage("c3po-dbn1") {
+        timeout(2) {
+          c3po_dbn1_output = sh returnStdout: true, script: """
+          ssh c3po-dbn1 '
+              /home/c3po/db_docs/data_provisioning_users.sh 208014567891234 1122334455 internet 465B5CE8B199B49FAA5F0A2EE238A6BC 25 10.0.4.60 d4416644f6154936193433dd20a0ace0
+              '
+          """
+          echo "${c3po_dbn1_output}"
+        }
+      }
       stage("c3po-hss1") {
         sh returnStdout: true, script: """ssh c3po-hss1 'if pgrep -f [h]ss; then pkill -f [h]ss; fi'"""
         timeout(2) {

@@ -26,7 +26,6 @@ node("${params.buildNode}") {
 
 
   def test_case = 'TC2_udp_static_arp'
-  def test_output_log = 'ng40'
 
   def base_path = '/var/log/cicd'
   def base_folder = 'test'
@@ -92,6 +91,14 @@ node("${params.buildNode}") {
   def dealer_out_stderr_log = "${sgx_dir}/" + "dealer_out" + "${stderr_ext}"
 
   def ng40_log_workspace_dir = "ng40"
+
+  // This must be in sync with the NG40 test cases to run specified on the vm.
+  def ng40_test_cases = [//"4G_AS2M_PAGING",
+                         //"4G_M2AS_SRQ_UDP",
+                         // "4G_M2AS_PING_FIX",
+                         // "4G_M2AS_TCP",
+                         // "4G_M2CN_PS",
+                         "4G_M2AS_UDP"]
 
 
   // To check SGX-DP connection.
@@ -480,18 +487,20 @@ node("${params.buildNode}") {
             echo "=========== Testcase Log ==========="
             echo "${testcase_output_log}"
 
-            //Get 4G_M2AS_UDP log filename.
-            FOURG_M2AS_UDP_output_filename = sh returnStdout: true, script: """
-            ssh ng40@ilnperf7 'ls -Art /home/ng40/config/ng40cvnf/ran/log | tail -n 1'
-            """
-            FOURG_M2AS_UDP_output_filename = FOURG_M2AS_UDP_output_filename.trim()
+            ng40_test_cases.each { test ->
+                //Get 4G_M2AS_UDP log filename.
+                test_output_filename = sh returnStdout: true, script: """
+                ssh ng40@ilnperf7 'ls -Art /home/ng40/config/ng40cvnf/ran/log | grep $test | tail -n 1'
+                """
+                test_output_filename = test_output_filename.trim()
 
-            //Display 4G_M2AS_UDP log.
-            FOURG_M2AS_UDP_output_log = sh returnStdout: true, script: """
-            ssh ng40@ilnperf7 'cat /home/ng40/config/ng40cvnf/ran/log/${FOURG_M2AS_UDP_output_filename}'
-            """
-            echo "=========== 4G_M2AS_UDP Log ==========="
-            echo "${FOURG_M2AS_UDP_output_log}"
+                //Display 4G_M2AS_UDP log.
+                test_output_log = sh returnStdout: true, script: """
+                ssh ng40@ilnperf7 'cat /home/ng40/config/ng40cvnf/ran/log/${test_output_filename}'
+                """
+                echo "=========== $test Log ==========="
+                echo "${test_output_log}"
+            }
           }
         }
       }
@@ -575,17 +584,27 @@ node("${params.buildNode}") {
         """
       } catch (err) {}
 
-      try {
-        sh returnStdout: true, script: """
-        mkdir ${ng40_log_workspace_dir}
-        scp ng40@ilnperf7:/home/ng40/config/ng40cvnf/testlist/log/${testcase_output_filename} ${ng40_log_workspace_dir}/
-        scp ng40@ilnperf7:/home/ng40/config/ng40cvnf/ran/log/${FOURG_M2AS_UDP_output_filename} ${ng40_log_workspace_dir}/
-        """
-      } catch (err) {}
+        try {
+          sh returnStdout: true, script: """
+          mkdir ${ng40_log_workspace_dir}
+          scp ng40@ilnperf7:/home/ng40/config/ng40cvnf/testlist/log/${testcase_output_filename} ${ng40_log_workspace_dir}/
+          """
+          script {
+              ng40_test_cases.each { test ->
+                  test_output_filename = sh returnStdout: true, script: """
+                  ssh ng40@ilnperf7 'ls -Art /home/ng40/config/ng40cvnf/ran/log | grep $test | tail -n 1'
+                  """
+                  test_output_filename = test_output_filename.trim()
+                  sh returnStdout: true, script: """
+                      scp ng40@ilnperf7:/home/ng40/config/ng40cvnf/ran/log/${test_output_filename} ${ng40_log_workspace_dir}/
+                  """
+              }
+          }
+        } catch (err) {}
 
       archiveArtifacts artifacts: "**/*${stdout_ext}", allowEmptyArchive: true
       archiveArtifacts artifacts: "**/*${stderr_ext}", allowEmptyArchive: true
-      archiveArtifacts artifacts: "${test_output_log}/*", allowEmptyArchive: true
+      archiveArtifacts artifacts: "${ng40_log_workspace_dir}/*", allowEmptyArchive: true
     }
     echo "RESULT: ${currentBuild.result}"
   }

@@ -100,7 +100,7 @@ node("${params.buildNode}") {
                 git clone https://github.com/omec-project/Nucleus.git -b ${params.branch} || exit 1
                 # We also need openmme repo for the CI specific configurations
                 rm -rf openmme
-                git clone https://github.com/omec-project/openmme.git -b paging || exit 1
+                git clone https://github.com/omec-project/openmme.git || exit 1
                 cd Nucleus
 
                 if [ ${params.ghprbGhRepository} = ${ghRepository} ]; then

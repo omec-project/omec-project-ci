@@ -16,7 +16,7 @@
 
 node("${params.buildNode}") {
 
-  def ghRepository = 'omec-project/nucleus'
+  def ghRepository = 'omec-project/Nucleus'
 
   def install_path = '/home/jenkins'
 
@@ -30,11 +30,11 @@ node("${params.buildNode}") {
   def stdout_ext = '.stdout.log'
   def stderr_ext = '.stderr.log'
 
-  def mme_base_make_stdout_log = "cicd_nucleus" + "${action_make}${stdout_ext}"
-  def mme_base_make_stderr_log = "cicd_nucleus" + "${action_make}${stderr_ext}"
+  def mme_base_make_stdout_log = "cicd_Nucleus" + "${action_make}${stdout_ext}"
+  def mme_base_make_stderr_log = "cicd_Nucleus" + "${action_make}${stderr_ext}"
 
-  def mme_base_install_stdout_log = "cicd_nucleus" + "${action_install}${stdout_ext}"
-  def mme_base_install_stderr_log = "cicd_nucleus" + "${action_install}${stderr_ext}"
+  def mme_base_install_stdout_log = "cicd_Nucleus" + "${action_install}${stdout_ext}"
+  def mme_base_install_stderr_log = "cicd_Nucleus" + "${action_install}${stderr_ext}"
 
   def mme_make_stdout_log = "${base_log_dir}/${mme_base_make_stdout_log}"
   def mme_make_stderr_log = "${base_log_dir}/${mme_base_make_stderr_log}"
@@ -96,12 +96,12 @@ node("${params.buildNode}") {
             c3po_mme1_output = sh returnStdout: true, script: """
             ssh c3po-mme1 '
                 cd ${install_path}
-                rm -rf nucleus
-                git clone https://github.com/omec-project/nucleus.git -b ${params.branch} || exit 1
+                rm -rf Nucleus
+                git clone https://github.com/omec-project/Nucleus.git -b ${params.branch} || exit 1
                 # We also need openmme repo for the CI specific configurations
                 rm -rf openmme
                 git clone https://github.com/omec-project/openmme.git -b paging || exit 1
-                cd nucleus
+                cd Nucleus
 
                 if [ ${params.ghprbGhRepository} = ${ghRepository} ]; then
                     # Clone repo.
@@ -129,11 +129,11 @@ node("${params.buildNode}") {
                     fi
                 fi
 
-                cp -f ${install_path}/openmme/.ci/config/mme.json    ${install_path}/nucleus/src/mme-app/conf/mme.json
-                cp -f ${install_path}/openmme/.ci/config/s1ap.json   ${install_path}/nucleus/src/s1ap/conf/s1ap.json
-                cp -f ${install_path}/openmme/.ci/config/s11.json    ${install_path}/nucleus/src/s11/conf/s11.json
-                cp -f ${install_path}/openmme/.ci/config/s6a.json    ${install_path}/nucleus/src/s6a/conf/s6a.json
-                cp -f ${install_path}/openmme/.ci/config/s6a_fd.conf ${install_path}/nucleus/src/s6a/conf/s6a_fd.conf
+                cp -f ${install_path}/openmme/.ci/config/mme.json    ${install_path}/Nucleus/src/mme-app/conf/mme.json
+                cp -f ${install_path}/openmme/.ci/config/s1ap.json   ${install_path}/Nucleus/src/s1ap/conf/s1ap.json
+                cp -f ${install_path}/openmme/.ci/config/s11.json    ${install_path}/Nucleus/src/s11/conf/s11.json
+                cp -f ${install_path}/openmme/.ci/config/s6a.json    ${install_path}/Nucleus/src/s6a/conf/s6a.json
+                cp -f ${install_path}/openmme/.ci/config/s6a_fd.conf ${install_path}/Nucleus/src/s6a/conf/s6a_fd.conf
                 '
             """
             echo "${c3po_mme1_output}"
@@ -141,7 +141,7 @@ node("${params.buildNode}") {
           }
           sh returnStdout: true, script: """
           ssh c3po-mme1 '
-              cd ${install_path}/nucleus
+              cd ${install_path}/Nucleus
               make clean || exit 1
               make 1>${mme_make_stdout_log} 2>${mme_make_stderr_log} || exit 1
               make install 1>${mme_install_stdout_log} 2>${mme_install_stderr_log}
@@ -149,7 +149,7 @@ node("${params.buildNode}") {
           """
           sh returnStdout: true, script: """
           ssh c3po-mme1 '
-              cd ${install_path}/nucleus/target/conf
+              cd ${install_path}/Nucleus/target/conf
               ./make_certs.sh mme localdomain
               '
           """

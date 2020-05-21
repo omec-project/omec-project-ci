@@ -464,7 +464,7 @@ node("${params.buildNode}") {
         timeout(10) {
           try {
               sh returnStdout: true, script: """
-              ssh ng40@ilnperf7 'cd config/ng40cvnf/testlist && ng40test run.ntl'
+              ssh ng40@ilnperf7 'ng40forcecleanup all && cd config/ng40cvnf/testlist && ng40test run.ntl'
               """
           } finally {
             //Get testcase log filename.

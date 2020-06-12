@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Jenkinsfile-omec-docker.groovy
+// Jenkinsfile-omec-container.groovy
 // Builds docker images, deploys OMEC on hardware pod and runs NG40 tests
 
 
@@ -120,7 +120,7 @@ pipeline {
 
     stage ("Test NG40"){
       steps {
-        build job: "omec_test_dev"
+        build job: "omec_ng40-test_dev"
       }
     }
   }

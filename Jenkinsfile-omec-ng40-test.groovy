@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Jenkinsfile-omec-test.groovy: run NG40 tests with deployed OMEC pod
+// Jenkinsfile-omec-ng40-test.groovy: run NG40 tests with deployed OMEC pod
 
 
 pipeline {

@@ -26,11 +26,8 @@ pipeline {
     stage('Environment Setup') {
       steps {
         script {
-         // TODO: clone aether-pod-configs
           omec_cp = "${params.centralConfig}/omec-cp.yaml"
           omec_dp = "${params.edgeConfig}/omec-dp.yaml"
-          //accelleran_cbrs_common = "${params.edgeConfig}/accelleran-cbrs-common.yaml"
-          //accelleran_cbrs_cu = "${params.edgeConfig}/accelleran-cbrs-cu.yaml"
 
           helm_args_control_plane = ""
           if (params.hssdbImage) { helm_args_control_plane += " --set images.tags.hssdb=${params.hssdbImage}" }
@@ -99,36 +96,6 @@ pipeline {
         }
       }
     }
-    /*
-    stage('Deploy Accelleran CBRS') {
-      steps {
-        withCredentials([string(credentialsId: 'aether-secret-deploy-test', variable: 'deploy_path')]) {
-          sh label: 'accelleran-cbrs-common', script: """
-            kubectl config use-context ${params.dpContext}
-            helm del --purge accelleran-cbrs-common || true
-            helm del --purge accelleran-cbrs-cu || true
-
-            helm install --kube-context ${params.dpContext} \
-                         --name accelleran-cbrs-common \
-                         --namespace omec \
-                         --values ${deploy_path}/${accelleran_cbrs_common} \
-                         cord/accelleran-cbrs-common
-
-            helm install --kube-context ${params.dpContext} \
-                         --name accelleran-cbrs-cu \
-                         --namespace omec \
-                         --values ${deploy_path}/${accelleran_cbrs_cu} \
-                         cord/accelleran-cbrs-cu
-
-            kubectl --context ${params.dpContext} -n omec wait \
-                    --for=condition=Ready \
-                    --timeout=300s \
-                    pod -l app=accelleran-cbrs-cu
-          """
-        }
-      }
-    }
-    */
 
     stage('Wait for Pods') {
       steps {

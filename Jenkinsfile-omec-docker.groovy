@@ -18,7 +18,6 @@
 
 pipeline {
 
-  /* no label, executor is determined by JJB */
   agent {
     label "${params.buildNode}"
   }
@@ -31,15 +30,6 @@ pipeline {
     stage ("Environment Cleanup"){
       steps {
         step([$class: 'WsCleanup'])
-        /*
-        sh label: 'Cleanup Docker Images', script: '''
-          sudo docker rmi -f $(sudo docker images --format '{{.Repository}} {{.ID}}' | grep 'none' | awk '{print $2}') || true
-          sudo docker rmi -f $(sudo docker images --format '{{.Repository}}:{{.Tag}}' | grep 'openmme') || true
-          sudo docker rmi -f $(sudo docker images --format '{{.Repository}}:{{.Tag}}' | grep 'nucleus') || true
-          sudo docker rmi -f $(sudo docker images --format '{{.Repository}}:{{.Tag}}' | grep 'ngic') || true
-          sudo docker rmi -f $(sudo docker images --format '{{.Repository}}:{{.Tag}}' | grep 'c3po') || true
-          '''
-        */
       }
     }
 

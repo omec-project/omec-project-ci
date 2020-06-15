@@ -22,10 +22,6 @@ pipeline {
     label "${params.buildNode}"
   }
 
-  options {
-    timeout(time: 1, unit: 'HOURS')
-  }
-
   stages {
     stage ("Environment Cleanup"){
       steps {
@@ -106,23 +102,30 @@ pipeline {
       }
     }
 
-    stage ("Deploy OMEC"){
-      steps {
-        build job: "omec_deploy_dev", parameters: [
-              string(name: 'hssdbImage', value: "${hssdb_image.trim()}"),
-              string(name: 'hssImage', value: "${hss_image.trim()}"),
-              string(name: 'mmeImage', value: "${mme_image.trim()}"),
-              string(name: 'spgwcImage', value: "${spgwc_image.trim()}"),
-              string(name: 'spgwuImage', value: "${spgwu_image.trim()}"),
-        ]
+    stage ("Deploy and Test"){
+      options {
+        lock(resource: 'aether-dev-cluster')
       }
-    }
 
-    stage ("Test NG40"){
-      steps {
-        build job: "omec_ng40-test_dev"
+      stages {
+        stage ("Deploy OMEC"){
+          steps {
+            build job: "omec_deploy_dev", parameters: [
+                  string(name: 'hssdbImage', value: "${hssdb_image.trim()}"),
+                  string(name: 'hssImage', value: "${hss_image.trim()}"),
+                  string(name: 'mmeImage', value: "${mme_image.trim()}"),
+                  string(name: 'spgwcImage', value: "${spgwc_image.trim()}"),
+                  string(name: 'spgwuImage', value: "${spgwu_image.trim()}"),
+            ]
+          }
+        }
+
+        stage ("Test NG40"){
+          steps {
+            build job: "omec_ng40-test_dev"
+          }
+        }
       }
     }
   }
 }
-

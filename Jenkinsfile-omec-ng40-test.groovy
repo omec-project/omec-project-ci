@@ -22,6 +22,10 @@ pipeline {
     label "${params.buildNode}"
   }
 
+  options {
+    timeout(time: 30, unit: 'MINUTES')
+  }
+
   environment {
       ng40Dir = "/home/ng40/config/ng40cvnf"
       ng40WorkspaceDir = "ng40"

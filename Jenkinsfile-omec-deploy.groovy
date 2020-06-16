@@ -31,7 +31,7 @@ pipeline {
       steps {
         script {
           omec_cp = "${params.centralConfig}/omec-cp.yaml"
-          omec_dp = "${params.edgeConfig}/omec-dp.yaml"
+          omec_dp = "${params.edgeConfig}/omec-upf.yaml"
 
           helm_args_control_plane = ""
           if (params.hssdbImage) { helm_args_control_plane += " --set images.tags.hssdb=${params.hssdbImage}" }
@@ -40,7 +40,8 @@ pipeline {
           if (params.spgwcImage) { helm_args_control_plane += " --set images.tags.spgwc=${params.spgwcImage}" }
 
           helm_args_data_plane = ""
-          if (params.spgwuImage) { helm_args_data_plane += " --set images.tags.spgwu=${params.spgwuImage}" }
+          if (params.bessImage) { helm_args_data_plane += " --set images.tags.bess=${params.bessImage}" }
+          if (params.cpifaceImage) { helm_args_data_plane += " --set images.tags.cpiface=${params.cpifaceImage}" }
         }
       }
     }
@@ -50,6 +51,7 @@ pipeline {
           helm delete --purge --kube-context ${params.dpContext} accelleran-cbrs-cu || true
           helm delete --purge --kube-context ${params.dpContext} accelleran-cbrs-common || true
           helm delete --purge --kube-context ${params.dpContext} omec-data-plane || true
+          helm delete --purge --kube-context ${params.dpContext} omec-user-plane || true
           helm delete --purge --kube-context ${params.cpContext} omec-control-plane || true
         """
       }
@@ -68,7 +70,7 @@ pipeline {
                          --values ${deploy_path}/${omec_cp} \
                          ${helm_args_control_plane} \
                          cord/omec-control-plane
-
+            sleep 30
             kubectl --context ${params.cpContext} -n omec wait \
                     --for=condition=Ready \
                     --timeout=300s \
@@ -84,14 +86,16 @@ pipeline {
           sh label: "${params.dpContext}", script: """
             kubectl config use-context ${params.dpContext}
             helm del --purge omec-data-plane || true
+            helm del --purge omec-user-plane || true
 
             helm install --kube-context ${params.dpContext} \
-                         --name omec-data-plane \
+                         --name omec-user-plane \
                          --namespace omec \
                          --values ${deploy_path}/${omec_dp} \
                          ${helm_args_data_plane} \
-                         cord/omec-data-plane
+                         cord/omec-user-plane
 
+            sleep 30
             kubectl --context ${params.dpContext} -n omec wait \
                     --for=condition=Ready \
                     --timeout=300s \

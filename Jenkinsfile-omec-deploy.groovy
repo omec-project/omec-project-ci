@@ -48,11 +48,19 @@ pipeline {
     stage('Clean up') {
       steps {
         sh label: 'Reset Deployment', script: """
-          helm delete --purge --kube-context ${params.dpContext} accelleran-cbrs-cu || true
-          helm delete --purge --kube-context ${params.dpContext} accelleran-cbrs-common || true
           helm delete --purge --kube-context ${params.dpContext} omec-data-plane || true
           helm delete --purge --kube-context ${params.dpContext} omec-user-plane || true
           helm delete --purge --kube-context ${params.cpContext} omec-control-plane || true
+
+          kubectl --context ${params.cpContext} -n omec wait \
+                  --for=delete \
+                  --timeout=300s \
+                  pod -l app=spgwc || true
+          kubectl --context ${params.dpContext} -n omec wait \
+                  --for=delete \
+                  --timeout=300s \
+                  pod -l app=spgwu || true
+
         """
       }
     }
@@ -61,16 +69,12 @@ pipeline {
       steps {
         withCredentials([string(credentialsId: 'aether-secret-deploy-test', variable: 'deploy_path')]) {
           sh label: "${params.cpContext}", script: """
-            kubectl config use-context ${params.cpContext}
-            helm del --purge omec-control-plane || true
-
             helm install --kube-context ${params.cpContext} \
                          --name omec-control-plane \
                          --namespace omec \
                          --values ${deploy_path}/${omec_cp} \
                          ${helm_args_control_plane} \
                          cord/omec-control-plane
-            sleep 30
             kubectl --context ${params.cpContext} -n omec wait \
                     --for=condition=Ready \
                     --timeout=300s \
@@ -84,36 +88,18 @@ pipeline {
       steps {
         withCredentials([string(credentialsId: 'aether-secret-deploy-test', variable: 'deploy_path')]) {
           sh label: "${params.dpContext}", script: """
-            kubectl config use-context ${params.dpContext}
-            helm del --purge omec-data-plane || true
-            helm del --purge omec-user-plane || true
-
             helm install --kube-context ${params.dpContext} \
                          --name omec-user-plane \
                          --namespace omec \
                          --values ${deploy_path}/${omec_dp} \
                          ${helm_args_data_plane} \
                          cord/omec-user-plane
-
-            sleep 30
             kubectl --context ${params.dpContext} -n omec wait \
                     --for=condition=Ready \
                     --timeout=300s \
                     pod -l app=spgwu
           """
         }
-      }
-    }
-
-    stage('Wait for Pods') {
-      steps {
-        sh label: 'Wait for pods', script: """
-          # TODO: clone helm-charts
-          kubectl config use-context ${params.cpContext}
-          ~/helm-charts/scripts/wait_for_pods.sh omec
-          kubectl config use-context ${params.dpContext}
-          ~/helm-charts/scripts/wait_for_pods.sh omec
-          """
       }
     }
   }

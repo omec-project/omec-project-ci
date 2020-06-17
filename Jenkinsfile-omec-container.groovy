@@ -57,8 +57,16 @@ pipeline {
             git checkout ${params.ghprbTargetBranch}
           fi
 
-          sudo make DOCKER_REGISTRY=${params.registry}/ DOCKER_TAG=${docker_tag} docker-build
-          sudo make DOCKER_REGISTRY=${params.registry}/ DOCKER_TAG=${docker_tag} docker-push
+          if [ "${params.project}" = "upf-epc" ]
+          then
+            EXTRA_VARS='CPU=haswell'
+            # TODO: enable docker registry cache
+            sed -i '/--cache-from/d' Makefile
+          else
+            EXTRA_VARS=''
+          fi
+          sudo make \$EXTRA_VARS DOCKER_REGISTRY=${params.registry}/ DOCKER_TAG=${docker_tag} docker-build
+          sudo make \$EXTRA_VARS DOCKER_REGISTRY=${params.registry}/ DOCKER_TAG=${docker_tag} docker-push
         """
       }
     }
@@ -71,13 +79,15 @@ pipeline {
           hss_tag = sh returnStdout: true, script: """curl -s 'https://registry.hub.docker.com/v2/repositories/omecproject/c3po-hss/tags/' | jq '.results[] | select(.name | contains("${c3poBranch}")).name' | head -1 | tr -d \\\""""
           mme_tag = sh returnStdout: true, script: """curl -s 'https://registry.hub.docker.com/v2/repositories/omecproject/nucleus/tags/' | jq '.results[] | select(.name | contains("${nucleusBranch}")).name' | head -1 | tr -d \\\""""
           spgwc_tag = sh returnStdout: true, script: """curl -s 'https://registry.hub.docker.com/v2/repositories/omecproject/ngic-cp/tags/' | jq '.results[] | select(.name | contains("${ngicBranch}")).name' | head -1 | tr -d \\\""""
-          spgwu_tag = sh returnStdout: true, script: """curl -s 'https://registry.hub.docker.com/v2/repositories/omecproject/ngic-dp/tags/' | jq '.results[] | select(.name | contains("${ngicBranch}")).name' | head -1 | tr -d \\\""""
+          bess_tag = sh returnStdout: true, script: """curl -s 'https://registry.hub.docker.com/v2/repositories/omecproject/upf-epc-bess/tags/' | jq '.results[] | select(.name | contains("${upfBranch}")).name' | head -1 | tr -d \\\""""
+          cpiface_tag = sh returnStdout: true, script: """curl -s 'https://registry.hub.docker.com/v2/repositories/omecproject/upf-epc-cpiface/tags/' | jq '.results[] | select(.name | contains("${upfBranch}")).name' | head -1 | tr -d \\\""""
 
           hssdb_image = "omecproject/c3po-hssdb:"+hssdb_tag
           hss_image = "omecproject/c3po-hss:"+hss_tag
           mme_image = "omecproject/nucleus:"+mme_tag
           spgwc_image = "omecproject/ngic-cp:"+spgwc_tag
-          spgwu_image = "omecproject/ngic-dp:"+spgwu_tag
+          bess_image = "omecproject/upf-epc-bess:"+bess_tag
+          cpiface_image = "omecproject/upf-epc-cpiface:"+cpiface_tag
 
           switch("${params.project}") {
           case "c3po":
@@ -87,17 +97,21 @@ pipeline {
           // TODO: add upf-epc repo
           case "ngic-rtc":
             spgwc_image = "${params.registry}/ngic-cp:${docker_tag}"
-            spgwu_image = "${params.registry}/ngic-dp:${docker_tag}"
             break
           case "Nucleus":
             mme_image = "${params.registry}/nucleus:${docker_tag}"
+            break
+          case "upf-epc":
+            bess_image = "${params.registry}/upf-epc-bess:${docker_tag}"
+            cpiface_image = "${params.registry}/upf-epc-cpiface:${docker_tag}"
             break
           }
           echo "Using hssdb image: ${hssdb_image}"
           echo "Using hss image: ${hss_image}"
           echo "Using mme image: ${mme_image}"
           echo "Using spgwc image: ${spgwc_image}"
-          echo "Using spgwu image: ${spgwu_image}"
+          echo "Using bess image: ${bess_image}"
+          echo "Using cpiface image: ${cpiface_image}"
         }
       }
     }
@@ -115,7 +129,8 @@ pipeline {
                   string(name: 'hssImage', value: "${hss_image.trim()}"),
                   string(name: 'mmeImage', value: "${mme_image.trim()}"),
                   string(name: 'spgwcImage', value: "${spgwc_image.trim()}"),
-                  string(name: 'spgwuImage', value: "${spgwu_image.trim()}"),
+                  string(name: 'bessImage', value: "${bess_image.trim()}"),
+                  string(name: 'cpifaceImage', value: "${cpiface_image.trim()}"),
             ]
           }
         }

@@ -31,7 +31,7 @@ pipeline {
       steps {
         script {
           omec_cp = "${params.centralConfig}/omec-cp.yaml"
-          omec_dp = "${params.edgeConfig}/omec-dp.yaml"
+          omec_dp = "${params.edgeConfig}/omec-upf.yaml"
 
           helm_args_control_plane = ""
           if (params.hssdbImage) { helm_args_control_plane += " --set images.tags.hssdb=${params.hssdbImage}" }
@@ -40,17 +40,27 @@ pipeline {
           if (params.spgwcImage) { helm_args_control_plane += " --set images.tags.spgwc=${params.spgwcImage}" }
 
           helm_args_data_plane = ""
-          if (params.spgwuImage) { helm_args_data_plane += " --set images.tags.spgwu=${params.spgwuImage}" }
+          if (params.bessImage) { helm_args_data_plane += " --set images.tags.bess=${params.bessImage}" }
+          if (params.cpifaceImage) { helm_args_data_plane += " --set images.tags.cpiface=${params.cpifaceImage}" }
         }
       }
     }
     stage('Clean up') {
       steps {
         sh label: 'Reset Deployment', script: """
-          helm delete --purge --kube-context ${params.dpContext} accelleran-cbrs-cu || true
-          helm delete --purge --kube-context ${params.dpContext} accelleran-cbrs-common || true
           helm delete --purge --kube-context ${params.dpContext} omec-data-plane || true
+          helm delete --purge --kube-context ${params.dpContext} omec-user-plane || true
           helm delete --purge --kube-context ${params.cpContext} omec-control-plane || true
+
+          kubectl --context ${params.cpContext} -n omec wait \
+                  --for=delete \
+                  --timeout=300s \
+                  pod -l app=spgwc || true
+          kubectl --context ${params.dpContext} -n omec wait \
+                  --for=delete \
+                  --timeout=300s \
+                  pod -l app=spgwu || true
+
         """
       }
     }
@@ -59,16 +69,12 @@ pipeline {
       steps {
         withCredentials([string(credentialsId: 'aether-secret-deploy-test', variable: 'deploy_path')]) {
           sh label: "${params.cpContext}", script: """
-            kubectl config use-context ${params.cpContext}
-            helm del --purge omec-control-plane || true
-
             helm install --kube-context ${params.cpContext} \
                          --name omec-control-plane \
                          --namespace omec \
                          --values ${deploy_path}/${omec_cp} \
                          ${helm_args_control_plane} \
                          cord/omec-control-plane
-
             kubectl --context ${params.cpContext} -n omec wait \
                     --for=condition=Ready \
                     --timeout=300s \
@@ -82,34 +88,18 @@ pipeline {
       steps {
         withCredentials([string(credentialsId: 'aether-secret-deploy-test', variable: 'deploy_path')]) {
           sh label: "${params.dpContext}", script: """
-            kubectl config use-context ${params.dpContext}
-            helm del --purge omec-data-plane || true
-
             helm install --kube-context ${params.dpContext} \
-                         --name omec-data-plane \
+                         --name omec-user-plane \
                          --namespace omec \
                          --values ${deploy_path}/${omec_dp} \
                          ${helm_args_data_plane} \
-                         cord/omec-data-plane
-
+                         cord/omec-user-plane
             kubectl --context ${params.dpContext} -n omec wait \
                     --for=condition=Ready \
                     --timeout=300s \
                     pod -l app=spgwu
           """
         }
-      }
-    }
-
-    stage('Wait for Pods') {
-      steps {
-        sh label: 'Wait for pods', script: """
-          # TODO: clone helm-charts
-          kubectl config use-context ${params.cpContext}
-          ~/helm-charts/scripts/wait_for_pods.sh omec
-          kubectl config use-context ${params.dpContext}
-          ~/helm-charts/scripts/wait_for_pods.sh omec
-          """
       }
     }
   }

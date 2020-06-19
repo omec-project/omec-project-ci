@@ -143,4 +143,16 @@ pipeline {
       }
     }
   }
+  post {
+    always {
+      // Copy NG40 logs
+      copyArtifacts projectName: 'omec_ng40-test_dev', target: 'ng40'
+      archiveArtifacts artifacts: "ng40/*/*", allowEmptyArchive: true
+
+      // Collect and copy OMEC logs
+      build job: "omec_archive-artifacts_dev"
+      copyArtifacts projectName: 'omec_archive-artifacts_dev', target: 'omec'
+      archiveArtifacts artifacts: "omec/*/*", allowEmptyArchive: true
+    }
+  }
 }

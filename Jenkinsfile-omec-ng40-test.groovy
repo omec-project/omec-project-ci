@@ -28,7 +28,8 @@ pipeline {
 
   environment {
       ng40Dir = "/home/ng40/config/ng40cvnf"
-      ng40WorkspaceDir = "ng40"
+      ng40LogDir = "log"
+      ng40PcapDir = "pcap"
   }
 
   stages {
@@ -81,16 +82,37 @@ pipeline {
 
         //Copy test logs to workspace
         sh returnStdout: true, script: """
-        mkdir ${ng40WorkspaceDir}
-        scp ${params.ng40VM}:${env.ng40Dir}/testlist/log/${testcase_output_filename} ${ng40WorkspaceDir}/
+        mkdir ${ng40LogDir}
+        scp ${params.ng40VM}:${env.ng40Dir}/testlist/log/${testcase_output_filename} ${ng40LogDir}/
         """
         for( String log_name : log_list.split() ) {
           sh returnStdout: true, script: """
-          scp ${params.ng40VM}:${env.ng40Dir}/ran/log/${log_name} ${ng40WorkspaceDir}/
+          scp ${params.ng40VM}:${env.ng40Dir}/ran/log/${log_name} ${ng40LogDir}/
           """
         }
 
-        archiveArtifacts artifacts: "${ng40WorkspaceDir}/*", allowEmptyArchive: true
+        archiveArtifacts artifacts: "${ng40LogDir}/*", allowEmptyArchive: true
+
+        //Get a list of test pcaps
+        pcap_list = sh returnStdout: true, script: """
+        ssh ${params.ng40VM} '
+        let "num=${testcase_num}+1"
+        ls -Art ${env.ng40Dir}/ran/pcap | tail -n \$num
+        '
+        """
+        pcap_list = pcap_list.trim()
+
+        //Copy test pcaps to workspace
+        sh returnStdout: true, script: """
+        mkdir ${ng40PcapDir}
+        """
+        for( String pcap_name : pcap_list.split() ) {
+          sh returnStdout: true, script: """
+          scp ${params.ng40VM}:${env.ng40Dir}/ran/pcap/${pcap_name} ${ng40PcapDir}/
+          """
+        }
+
+        archiveArtifacts artifacts: "${ng40PcapDir}/*", allowEmptyArchive: true
       }
     }
   }

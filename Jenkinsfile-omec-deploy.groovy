@@ -73,6 +73,7 @@ pipeline {
                          --name omec-control-plane \
                          --namespace omec \
                          --values ${deploy_path}/${omec_cp} \
+                         --set images.pullPolicy=Always \
                          ${helm_args_control_plane} \
                          cord/omec-control-plane
             kubectl --context ${params.cpContext} -n omec wait \
@@ -92,6 +93,7 @@ pipeline {
                          --name omec-user-plane \
                          --namespace omec \
                          --values ${deploy_path}/${omec_dp} \
+                         --set images.pullPolicy=Always \
                          ${helm_args_data_plane} \
                          cord/omec-user-plane
             kubectl --context ${params.dpContext} -n omec wait \

@@ -27,7 +27,8 @@ pipeline {
   }
 
   environment {
-    logDir = "container-logs"
+    k8sLogDir = "k8s-logs"
+    containterLogDir = "container-logs"
   }
 
   stages {
@@ -39,30 +40,37 @@ pipeline {
 
     stage('Get Container Logs') {
       steps {
-        sh label: "Save OMEC container logs", script: """
-        mkdir ${logDir}
-        kubectl --context ${params.cpContext} -n omec get pods > ${logDir}/cp-pods.log
-        kubectl --context ${params.dpContext} -n omec get pods > ${logDir}/dp-pods.log
+        sh label: "Save OMEC logs", script: """
+        # Get k8s logs
+        mkdir ${k8sLogDir}
+        kubectl --context ${params.cpContext} -n omec get pods > ${k8sLogDir}/cp-pods.log
+        kubectl --context ${params.dpContext} -n omec get pods > ${k8sLogDir}/dp-pods.log
+        kubectl --context ${params.cpContext} -n omec describe pod hss-0 > ${k8sLogDir}/hss-describe.log
+        kubectl --context ${params.cpContext} -n omec describe pod mme-0 > ${k8sLogDir}/mme-describe.log
+        kubectl --context ${params.cpContext} -n omec describe pod spgwc-0 > ${k8sLogDir}/spgwc-describe.log
+        kubectl --context ${params.dpContext} -n omec describe pod spgwu-0 > ${k8sLogDir}/spgwu-describe.log
 
-        kubectl --context ${params.cpContext} -n omec logs --timestamps hss-0 > ${logDir}/hss.log || true
-        kubectl --context ${params.cpContext} -n omec logs --timestamps mme-0 -c s1ap-app > ${logDir}/s1ap-app.log || true
-        kubectl --context ${params.cpContext} -n omec logs --timestamps mme-0 -c mme-app > ${logDir}/mme-app.log || true
-        kubectl --context ${params.cpContext} -n omec logs --timestamps mme-0 -c s6a-app > ${logDir}/s6a-app.log || true
-        kubectl --context ${params.cpContext} -n omec logs --timestamps mme-0 -c s11-app > ${logDir}/s11-app.log || true
-        kubectl --context ${params.cpContext} -n omec logs --timestamps spgwc-0 > ${logDir}/spgwc.log || true
-        kubectl --context ${params.dpContext} -n omec logs --timestamps spgwu-0 -c routectl > ${logDir}/routectl.log || true
-        kubectl --context ${params.dpContext} -n omec logs --timestamps spgwu-0 -c bessd > ${logDir}/bessd.log || true
-        kubectl --context ${params.dpContext} -n omec logs --timestamps spgwu-0 -c web > ${logDir}/web.log || true
-        kubectl --context ${params.dpContext} -n omec logs --timestamps spgwu-0 -c cpiface > ${logDir}/cpiface.log || true
+        # Get container logs
+        mkdir ${containterLogDir}
+        kubectl --context ${params.cpContext} -n omec logs --timestamps hss-0 > ${containterLogDir}/hss.log || true
+        kubectl --context ${params.cpContext} -n omec logs --timestamps mme-0 -c s1ap-app > ${containterLogDir}/s1ap-app.log || true
+        kubectl --context ${params.cpContext} -n omec logs --timestamps mme-0 -c mme-app > ${containterLogDir}/mme-app.log || true
+        kubectl --context ${params.cpContext} -n omec logs --timestamps mme-0 -c s6a-app > ${containterLogDir}/s6a-app.log || true
+        kubectl --context ${params.cpContext} -n omec logs --timestamps mme-0 -c s11-app > ${containterLogDir}/s11-app.log || true
+        kubectl --context ${params.cpContext} -n omec logs --timestamps spgwc-0 > ${containterLogDir}/spgwc.log || true
+        kubectl --context ${params.dpContext} -n omec logs --timestamps spgwu-0 -c routectl > ${containterLogDir}/routectl.log || true
+        kubectl --context ${params.dpContext} -n omec logs --timestamps spgwu-0 -c bessd > ${containterLogDir}/bessd.log || true
+        kubectl --context ${params.dpContext} -n omec logs --timestamps spgwu-0 -c web > ${containterLogDir}/web.log || true
+        kubectl --context ${params.dpContext} -n omec logs --timestamps spgwu-0 -c cpiface > ${containterLogDir}/cpiface.log || true
         """
-
       }
     }
   }
 
   post {
     always {
-      archiveArtifacts artifacts: "${logDir}/*", allowEmptyArchive: true
+      archiveArtifacts artifacts: "${k8sLogDir}/*", allowEmptyArchive: true
+      archiveArtifacts artifacts: "${containterLogDir}/*", allowEmptyArchive: true
     }
   }
 }

@@ -123,6 +123,7 @@ pipeline {
       steps {
         script {
           try {
+            runTest = false
             build job: "omec_deploy_dev", parameters: [
                   string(name: 'hssdbImage', value: "${hssdb_image.trim()}"),
                   string(name: 'hssImage', value: "${hss_image.trim()}"),

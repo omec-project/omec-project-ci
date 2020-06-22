@@ -120,10 +120,10 @@ pipeline {
       options {
         lock(resource: 'aether-dev-cluster')
       }
-
-      stages {
-        stage ("Deploy OMEC"){
-          steps {
+      steps {
+        script {
+          try {
+            runTest = false
             build job: "omec_deploy_dev", parameters: [
                   string(name: 'hssdbImage', value: "${hssdb_image.trim()}"),
                   string(name: 'hssImage', value: "${hss_image.trim()}"),
@@ -132,12 +132,23 @@ pipeline {
                   string(name: 'bessImage', value: "${bess_image.trim()}"),
                   string(name: 'cpifaceImage', value: "${cpiface_image.trim()}"),
             ]
-          }
-        }
-
-        stage ("Test NG40"){
-          steps {
+            runTest = true
             build job: "omec_ng40-test_dev"
+            currentBuild.result = 'SUCCESS'
+          } catch (err) {
+            currentBuild.result = 'FAILURE'
+            throw err
+          } finally {
+            // Collect and copy OMEC logs
+            build job: "omec_archive-artifacts_dev"
+            copyArtifacts projectName: 'omec_archive-artifacts_dev', target: 'omec'
+            archiveArtifacts artifacts: "omec/*/*", allowEmptyArchive: true
+
+            if (runTest) {
+              // Copy NG40 logs
+              copyArtifacts projectName: 'omec_ng40-test_dev', target: 'ng40'
+              archiveArtifacts artifacts: "ng40/*/*", allowEmptyArchive: true
+            }
           }
         }
       }

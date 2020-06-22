@@ -141,12 +141,12 @@ pipeline {
           } finally {
             // Collect and copy OMEC logs
             build job: "omec_archive-artifacts_dev"
-            copyArtifacts projectName: 'omec_archive-artifacts_dev', target: 'omec'
+            copyArtifacts projectName: 'omec_archive-artifacts_dev', target: 'omec', selector: lastCompleted()
             archiveArtifacts artifacts: "omec/*/*", allowEmptyArchive: true
 
             if (runTest) {
               // Copy NG40 logs
-              copyArtifacts projectName: 'omec_ng40-test_dev', target: 'ng40'
+              copyArtifacts projectName: 'omec_ng40-test_dev', target: 'ng40', selector: lastCompleted()
               archiveArtifacts artifacts: "ng40/*/*", allowEmptyArchive: true
             }
           }

@@ -36,8 +36,31 @@ pipeline {
     stage('Clean Up') {
       steps {
         step([$class: 'WsCleanup'])
+        sh label: 'Kill all packet captures', script: """
+        pkill kubectl-sniff || true
+        mkdir ${ng40LogDir}
+        mkdir ${ng40PcapDir}
+        """
       }
     }
+
+    stage('Start Packet Capturing') {
+      steps {
+        sh label: 'Capture packets on containers', script: """
+        export BUILD_ID=dontKillMe
+        export JENKINS_NODE_COOKIE=dontKillMe
+        kubectl config use-context ${params.cpContext}
+        nohup kubectl sniff -n omec hss-0 -o ${ng40PcapDir}/hss.pcap > /dev/null 2>&1 &
+        nohup kubectl sniff -n omec mme-0 -c mme-app -o ${ng40PcapDir}/mme.pcap > /dev/null 2>&1 &
+        nohup kubectl sniff -n omec spgwc-0 -o ${ng40PcapDir}/spgwc.pcap > /dev/null 2>&1 &
+        sleep 5
+        kubectl config use-context ${params.dpContext}
+        nohup kubectl sniff -n omec spgwu-0 -o ${ng40PcapDir}/spgwu.pcap > /dev/null 2>&1 &
+        sleep 5
+        """
+      }
+    }
+
     stage('Test NG40') {
       steps {
         sh label: 'Run NG40 tests', script: """
@@ -82,7 +105,6 @@ pipeline {
 
         //Copy test logs to workspace
         sh returnStdout: true, script: """
-        mkdir ${ng40LogDir}
         scp ${params.ng40VM}:${env.ng40Dir}/testlist/log/${testcase_output_filename} ${ng40LogDir}/
         """
         for( String log_name : log_list.split() ) {
@@ -103,14 +125,16 @@ pipeline {
         pcap_list = pcap_list.trim()
 
         //Copy test pcaps to workspace
-        sh returnStdout: true, script: """
-        mkdir ${ng40PcapDir}
-        """
         for( String pcap_name : pcap_list.split() ) {
           sh returnStdout: true, script: """
           scp ${params.ng40VM}:${env.ng40Dir}/ran/pcap/${pcap_name} ${ng40PcapDir}/
           """
         }
+
+        //Stop packet capturing on containers
+        sh returnStdout: true, script: """
+        pkill kubectl-sniff || true
+        """
 
         archiveArtifacts artifacts: "${ng40PcapDir}/*", allowEmptyArchive: true
       }

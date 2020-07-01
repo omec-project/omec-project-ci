@@ -78,7 +78,7 @@ pipeline {
                          cord/omec-control-plane
             kubectl --context ${params.cpContext} -n omec wait \
                     --for=condition=Ready \
-                    --timeout=300s \
+                    --timeout=1200s \
                     pod -l app=spgwc
           """
         }

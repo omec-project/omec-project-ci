@@ -98,9 +98,6 @@ node("${params.buildNode}") {
                 cd ${install_path}
                 rm -rf Nucleus
                 git clone https://github.com/omec-project/Nucleus.git -b ${params.branch} || exit 1
-                # We also need openmme repo for the CI specific configurations
-                rm -rf openmme
-                git clone https://github.com/omec-project/openmme.git || exit 1
                 cd Nucleus
 
                 if [ ${params.ghprbGhRepository} = ${ghRepository} ]; then
@@ -129,11 +126,11 @@ node("${params.buildNode}") {
                     fi
                 fi
 
-                cp -f ${install_path}/openmme/.ci/config/mme.json    ${install_path}/Nucleus/src/mme-app/conf/mme.json
-                cp -f ${install_path}/openmme/.ci/config/s1ap.json   ${install_path}/Nucleus/src/s1ap/conf/s1ap.json
-                cp -f ${install_path}/openmme/.ci/config/s11.json    ${install_path}/Nucleus/src/s11/conf/s11.json
-                cp -f ${install_path}/openmme/.ci/config/s6a.json    ${install_path}/Nucleus/src/s6a/conf/s6a.json
-                cp -f ${install_path}/openmme/.ci/config/s6a_fd.conf ${install_path}/Nucleus/src/s6a/conf/s6a_fd.conf
+                cp -f ${install_path}/Nucleus/.ci/config/mme.json    ${install_path}/Nucleus/src/mme-app/conf/mme.json
+                cp -f ${install_path}/Nucleus/.ci/config/s1ap.json   ${install_path}/Nucleus/src/s1ap/conf/s1ap.json
+                cp -f ${install_path}/Nucleus/.ci/config/s11.json    ${install_path}/Nucleus/src/s11/conf/s11.json
+                cp -f ${install_path}/Nucleus/.ci/config/s6a.json    ${install_path}/Nucleus/src/s6a/conf/s6a.json
+                cp -f ${install_path}/Nucleus/.ci/config/s6a_fd.conf ${install_path}/Nucleus/src/s6a/conf/s6a_fd.conf
                 '
             """
             echo "${c3po_mme1_output}"

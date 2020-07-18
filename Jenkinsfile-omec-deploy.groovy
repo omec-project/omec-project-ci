@@ -41,7 +41,7 @@ pipeline {
 
           helm_args_data_plane = ""
           if (params.bessImage) { helm_args_data_plane += " --set images.tags.bess=${params.bessImage}" }
-          if (params.cpifaceImage) { helm_args_data_plane += " --set images.tags.cpiface=${params.cpifaceImage}" }
+          if (params.cpifaceImage) { helm_args_data_plane += " --set images.tags.zmqiface=${params.cpifaceImage}" }
         }
       }
     }
@@ -67,7 +67,8 @@ pipeline {
 
     stage('Deploy Control Plane') {
       steps {
-        withCredentials([string(credentialsId: 'aether-secret-deploy-test', variable: 'deploy_path')]) {
+        withCredentials([string(credentialsId: 'aether-secret-deploy-test', variable: 'deploy_path'),
+                         string(credentialsId: 'aether-secret-helm-charts-dev-cluster', variable: 'helm_charts_path')]) {
           sh label: "${params.cpContext}", script: """
             helm install --kube-context ${params.cpContext} \
                          --name omec-control-plane \
@@ -75,7 +76,7 @@ pipeline {
                          --values ${deploy_path}/${omec_cp} \
                          --set images.pullPolicy=Always \
                          ${helm_args_control_plane} \
-                         cord/omec-control-plane
+                         ${helm_charts_path}/omec-control-plane
             kubectl --context ${params.cpContext} -n omec wait \
                     --for=condition=Ready \
                     --timeout=1200s \
@@ -87,7 +88,8 @@ pipeline {
 
     stage('Deploy Data Plane') {
       steps {
-        withCredentials([string(credentialsId: 'aether-secret-deploy-test', variable: 'deploy_path')]) {
+        withCredentials([string(credentialsId: 'aether-secret-deploy-test', variable: 'deploy_path'),
+                         string(credentialsId: 'aether-secret-helm-charts-dev-cluster', variable: 'helm_charts_path')]) {
           sh label: "${params.dpContext}", script: """
             helm install --kube-context ${params.dpContext} \
                          --name omec-user-plane \
@@ -95,7 +97,7 @@ pipeline {
                          --values ${deploy_path}/${omec_dp} \
                          --set images.pullPolicy=Always \
                          ${helm_args_data_plane} \
-                         cord/omec-user-plane
+                         ${helm_charts_path}/omec-user-plane
             kubectl --context ${params.dpContext} -n omec wait \
                     --for=condition=Ready \
                     --timeout=300s \

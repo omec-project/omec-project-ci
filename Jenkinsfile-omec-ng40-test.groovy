@@ -111,11 +111,11 @@ pipeline {
 
         //Copy test logs to workspace
         sh returnStdout: true, script: """
-        scp ${params.ng40VM}:${env.ng40Dir}/testlist/log/${testcase_output_filename} ${ng40LogDir}/
+        scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ${params.ng40VM}:${env.ng40Dir}/testlist/log/${testcase_output_filename} ${ng40LogDir}/
         """
         for( String log_name : log_list.split() ) {
           sh returnStdout: true, script: """
-          scp ${params.ng40VM}:${env.ng40Dir}/ran/log/${log_name} ${ng40LogDir}/
+          scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ${params.ng40VM}:${env.ng40Dir}/ran/log/${log_name} ${ng40LogDir}/
           """
         }
 
@@ -133,7 +133,7 @@ pipeline {
         //Copy test pcaps to workspace
         for( String pcap_name : pcap_list.split() ) {
           sh returnStdout: true, script: """
-          scp ${params.ng40VM}:${env.ng40Dir}/ran/pcap/${pcap_name} ${ng40PcapDir}/
+          scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ${params.ng40VM}:${env.ng40Dir}/ran/pcap/${pcap_name} ${ng40PcapDir}/
           """
         }
 

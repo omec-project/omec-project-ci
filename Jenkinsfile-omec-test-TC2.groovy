@@ -569,6 +569,8 @@ node("${params.buildNode}") {
       try {
         sh returnStdout: true, script: """
         scp -r c3po-mme1:${mme_dir} .
+        scp c3po-mme1:/tmp/*.txt ./${mme_app}
+        scp c3po-mme1:/tmp/*.pcap ./${mme_app}
         """
       } catch (err) {}
 
@@ -604,6 +606,8 @@ node("${params.buildNode}") {
 
       archiveArtifacts artifacts: "**/*${stdout_ext}", allowEmptyArchive: true
       archiveArtifacts artifacts: "**/*${stderr_ext}", allowEmptyArchive: true
+      archiveArtifacts artifacts: "**/*.txt", allowEmptyArchive: true
+      archiveArtifacts artifacts: "**/*.pcap", allowEmptyArchive: true
       archiveArtifacts artifacts: "${ng40_log_workspace_dir}/*", allowEmptyArchive: true
     }
     echo "RESULT: ${currentBuild.result}"

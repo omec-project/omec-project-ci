@@ -64,7 +64,7 @@ pipeline {
     stage('Test NG40') {
       steps {
         sh label: 'Run NG40 tests', script: """
-        ssh ${params.ng40VM} '
+        ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ${params.ng40VM} '
         ng40forcecleanup all
         cd ${env.ng40Dir}/testlist
         ng40test ${ntlFile}
@@ -78,25 +78,31 @@ pipeline {
       script {
         //Get testcase log filename
         testcase_output_filename = sh returnStdout: true, script: """
-        ssh ${params.ng40VM} 'ls -Art ${env.ng40Dir}/testlist/log | tail -n 1'
+        ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ${params.ng40VM} '
+        ls -Art ${env.ng40Dir}/testlist/log | tail -n 1
+        '
         """
         testcase_output_filename = testcase_output_filename.trim()
 
         //Display testcase log
         testcase_output_log = sh returnStdout: true, script: """
-        ssh ${params.ng40VM} 'cat ${env.ng40Dir}/testlist/log/${testcase_output_filename}'
+        ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ${params.ng40VM} '
+        cat ${env.ng40Dir}/testlist/log/${testcase_output_filename}
+        '
         """
         echo "=========== Testcase Log ==========="
         echo "${testcase_output_log}"
 
         //Get number of test cases executed
         testcase_num = sh returnStdout: true, script: """
-        ssh ${params.ng40VM} 'grep "Run test case" ${env.ng40Dir}/testlist/log/${testcase_output_filename} | wc -l'
+        ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ${params.ng40VM} '
+        grep "Run test case" ${env.ng40Dir}/testlist/log/${testcase_output_filename} | wc -l
+        '
         """
 
         //Get a list of test logs
         log_list = sh returnStdout: true, script: """
-        ssh ${params.ng40VM} '
+        ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ${params.ng40VM} '
         let "num=${testcase_num}+1"
         ls -Art ${env.ng40Dir}/ran/log | tail -n \$num
         '
@@ -117,7 +123,7 @@ pipeline {
 
         //Get a list of test pcaps
         pcap_list = sh returnStdout: true, script: """
-        ssh ${params.ng40VM} '
+        ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ${params.ng40VM} '
         let "num=${testcase_num}+1"
         ls -Art ${env.ng40Dir}/ran/pcap | tail -n \$num
         '

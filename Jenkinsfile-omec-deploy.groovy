@@ -41,7 +41,8 @@ pipeline {
 
           helm_args_data_plane = ""
           if (params.bessImage) { helm_args_data_plane += " --set images.tags.bess=${params.bessImage}" }
-          if (params.cpifaceImage) { helm_args_data_plane += " --set images.tags.zmqiface=${params.cpifaceImage}" }
+          if (params.zmqifaceImage) { helm_args_data_plane += " --set images.tags.zmqiface=${params.zmqifaceImage}" }
+          if (params.pfcpifaceImage) { helm_args_data_plane += " --set images.tags.pfcpiface=${params.pfcpifaceImage}" }
         }
       }
     }

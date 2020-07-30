@@ -31,12 +31,13 @@ pipeline {
 
     stage ("Build Docker Image"){
       steps {
-        // TODO: checkout c3po with --recursive option
         withCredentials([string(credentialsId: '64fe2b1a-b33a-4f13-8442-ad8360434003', variable: 'omecproject_api')]) {
           checkout([
             $class: 'GitSCM',
             userRemoteConfigs: [[ url: "https://omecproject:${omecproject_api}@github.com/omec-project/${params.project}.git", refspec: "pull/${params.ghprbPullId}/head" ]],
-            extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: "${params.project}"]],
+            extensions: [
+              [$class: 'RelativeTargetDirectory', relativeTargetDir: "${params.project}"],
+              [$class: 'SubmoduleOption', recursiveSubmodules: true]]
             ],)
         }
         script {

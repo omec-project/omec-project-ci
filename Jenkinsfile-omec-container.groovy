@@ -31,6 +31,14 @@ pipeline {
 
     stage ("Build Docker Image"){
       steps {
+        // TODO: checkout c3po with --recursive option
+        withCredentials([string(credentialsId: '64fe2b1a-b33a-4f13-8442-ad8360434003', variable: 'omecproject_api')]) {
+          checkout([
+            $class: 'GitSCM',
+            userRemoteConfigs: [[ url: "https://omecproject:${omecproject_api}@github.com/omec-project/${params.project}.git", refspec: "pull/${params.ghprbPullId}/head" ]],
+            extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: "${params.project}"]],
+            ],)
+        }
         script {
           if (params.ghprbPullId == ""){
             docker_tag = "jenkins_debug"
@@ -40,23 +48,16 @@ pipeline {
             docker_tag = "${params.ghprbTargetBranch}-${pull_request_num}-${abbreviated_commit_hash}"
           }
         }
-        sh label: 'Clone repo', script: """
-          if [ "${params.project}" = "c3po" ]
-          then
-            git clone https://github.com/omec-project/${params.project} --recursive
-          else
-            git clone https://github.com/omec-project/${params.project}
-          fi
+        sh label: 'Docker build', script: """
           cd ${params.project}
           if [ ! -z "${params.ghprbPullId}" ]
           then
             echo "Checking out GitHub Pull Request: ${params.ghprbPullId}"
-            git fetch origin pull/${params.ghprbPullId}/head && git checkout FETCH_HEAD
+            git checkout FETCH_HEAD
           else
             echo "GERRIT_REFSPEC not provided. Checking out target branch."
             git checkout ${params.ghprbTargetBranch}
           fi
-
           if [ "${params.project}" = "upf-epc" ]
           then
             EXTRA_VARS='CPU=haswell'
@@ -78,32 +79,34 @@ pipeline {
           hssdb_tag = sh returnStdout: true, script: """curl -s 'https://registry.hub.docker.com/v2/repositories/omecproject/c3po-hssdb/tags/' | jq '.results[] | select(.name | contains("${c3poBranch}")).name' | head -1 | tr -d \\\""""
           hss_tag = sh returnStdout: true, script: """curl -s 'https://registry.hub.docker.com/v2/repositories/omecproject/c3po-hss/tags/' | jq '.results[] | select(.name | contains("${c3poBranch}")).name' | head -1 | tr -d \\\""""
           mme_tag = sh returnStdout: true, script: """curl -s 'https://registry.hub.docker.com/v2/repositories/omecproject/nucleus/tags/' | jq '.results[] | select(.name | contains("${nucleusBranch}")).name' | head -1 | tr -d \\\""""
-          spgwc_tag = sh returnStdout: true, script: """curl -s 'https://registry.hub.docker.com/v2/repositories/omecproject/ngic-cp/tags/' | jq '.results[] | select(.name | contains("${ngicBranch}")).name' | head -1 | tr -d \\\""""
+          spgwc_tag = sh returnStdout: true, script: """curl -s 'https://registry.hub.docker.com/v2/repositories/omecproject/spgw/tags/' | jq '.results[] | select(.name | contains("${spgwBranch}")).name' | head -1 | tr -d \\\""""
           bess_tag = sh returnStdout: true, script: """curl -s 'https://registry.hub.docker.com/v2/repositories/omecproject/upf-epc-bess/tags/' | jq '.results[] | select(.name | contains("${upfBranch}")).name' | head -1 | tr -d \\\""""
-          cpiface_tag = sh returnStdout: true, script: """curl -s 'https://registry.hub.docker.com/v2/repositories/omecproject/upf-epc-cpiface/tags/' | jq '.results[] | select(.name | contains("${upfBranch}")).name' | head -1 | tr -d \\\""""
+          zmqiface_tag = sh returnStdout: true, script: """curl -s 'https://registry.hub.docker.com/v2/repositories/omecproject/upf-epc-cpiface/tags/' | jq '.results[] | select(.name | contains("${upfBranch}")).name' | head -1 | tr -d \\\""""
+          pfcpiface_tag = sh returnStdout: true, script: """curl -s 'https://registry.hub.docker.com/v2/repositories/omecproject/upf-epc-pfcpiface/tags/' | jq '.results[] | select(.name | contains("${upfBranch}")).name' | head -1 | tr -d \\\""""
 
           hssdb_image = "omecproject/c3po-hssdb:"+hssdb_tag
           hss_image = "omecproject/c3po-hss:"+hss_tag
           mme_image = "omecproject/nucleus:"+mme_tag
-          spgwc_image = "omecproject/ngic-cp:"+spgwc_tag
+          spgwc_image = "omecproject/spgw:"+spgwc_tag
           bess_image = "omecproject/upf-epc-bess:"+bess_tag
-          cpiface_image = "omecproject/upf-epc-cpiface:"+cpiface_tag
+          zmqiface_image = "omecproject/upf-epc-cpiface:"+zmqiface_tag
+          pfcpiface_image = "omecproject/upf-epc-pfcpiface:"+pfcpiface_tag
 
           switch("${params.project}") {
           case "c3po":
             hssdb_image = "${params.registry}/c3po-hssdb:${docker_tag}"
             hss_image = "${params.registry}/c3po-hss:${docker_tag}"
             break
-          // TODO: add upf-epc repo
-          case "ngic-rtc":
-            spgwc_image = "${params.registry}/ngic-cp:${docker_tag}"
-            break
           case "Nucleus":
             mme_image = "${params.registry}/nucleus:${docker_tag}"
             break
+          case "spgw":
+            spgwc_image = "${params.registry}/spgw:${docker_tag}"
+            break
           case "upf-epc":
             bess_image = "${params.registry}/upf-epc-bess:${docker_tag}"
-            cpiface_image = "${params.registry}/upf-epc-cpiface:${docker_tag}"
+            zmqiface_image = "${params.registry}/upf-epc-cpiface:${docker_tag}"
+            pfcpiface_image = "${params.registry}/upf-epc-pfcpiface:${docker_tag}"
             break
           }
           echo "Using hssdb image: ${hssdb_image}"
@@ -111,7 +114,8 @@ pipeline {
           echo "Using mme image: ${mme_image}"
           echo "Using spgwc image: ${spgwc_image}"
           echo "Using bess image: ${bess_image}"
-          echo "Using cpiface image: ${cpiface_image}"
+          echo "Using zmqiface image: ${zmqiface_image}"
+          echo "Using pfcpiface image: ${pfcpiface_image}"
         }
       }
     }
@@ -130,7 +134,8 @@ pipeline {
                   string(name: 'mmeImage', value: "${mme_image.trim()}"),
                   string(name: 'spgwcImage', value: "${spgwc_image.trim()}"),
                   string(name: 'bessImage', value: "${bess_image.trim()}"),
-                  string(name: 'cpifaceImage', value: "${cpiface_image.trim()}"),
+                  string(name: 'zmqifaceImage', value: "${zmqiface_image.trim()}"),
+                  string(name: 'pfcpifaceImage', value: "${pfcpiface_image.trim()}"),
             ]
             runTest = true
             build job: "omec_ng40-test_dev"

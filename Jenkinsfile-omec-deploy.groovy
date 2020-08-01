@@ -29,6 +29,13 @@ pipeline {
   stages {
     stage('Environment Setup') {
       steps {
+        step([$class: 'WsCleanup'])
+        sshagent (credentials: ['cord-jenkins-ssh']) {
+          sh label: "Clone aether-helm-charts and aether-pod-configs", script: """
+          git clone ssh://jenkins@gerrit.opencord.org:29418/aether-helm-charts
+          git clone ssh://jenkins@gerrit.opencord.org:29418/aether-pod-configs
+          """
+        }
         script {
           omec_cp = "${params.centralConfig}/omec-cp.yaml"
           omec_dp = "${params.edgeConfig}/omec-upf.yaml"
@@ -69,7 +76,11 @@ pipeline {
     stage('Deploy Control Plane') {
       steps {
         withCredentials([string(credentialsId: 'aether-secret-deploy-test', variable: 'deploy_path'),
-                         string(credentialsId: 'aether-secret-helm-charts-dev-cluster', variable: 'helm_charts_path')]) {
+                         string(credentialsId: 'aether-secret-helm-charts', variable: 'helm_charts_path')]) {
+          sh label: "helm dep up", script: """
+            cd ${helm_charts_path}/omec-control-plane
+            helm dep up
+          """
           sh label: "${params.cpContext}", script: """
             helm install --kube-context ${params.cpContext} \
                          --name omec-control-plane \
@@ -90,7 +101,7 @@ pipeline {
     stage('Deploy Data Plane') {
       steps {
         withCredentials([string(credentialsId: 'aether-secret-deploy-test', variable: 'deploy_path'),
-                         string(credentialsId: 'aether-secret-helm-charts-dev-cluster', variable: 'helm_charts_path')]) {
+                         string(credentialsId: 'aether-secret-helm-charts', variable: 'helm_charts_path')]) {
           sh label: "${params.dpContext}", script: """
             helm install --kube-context ${params.dpContext} \
                          --name omec-user-plane \

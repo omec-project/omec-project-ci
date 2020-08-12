@@ -43,16 +43,16 @@ pipeline {
         sh label: "Save OMEC logs", script: """
         # Get k8s logs
         mkdir ${k8sLogDir}
-        kubectl --context ${params.cpContext} -n omec get pods > ${k8sLogDir}/cp-pods.log
-        kubectl --context ${params.dpContext} -n omec get pods > ${k8sLogDir}/dp-pods.log
-        kubectl --context ${params.cpContext} -n omec describe pod hss-0 > ${k8sLogDir}/hss-describe.log
-        kubectl --context ${params.cpContext} -n omec describe pod mme-0 > ${k8sLogDir}/mme-describe.log
-        kubectl --context ${params.cpContext} -n omec describe pod spgwc-0 > ${k8sLogDir}/spgwc-describe.log
-        kubectl --context ${params.dpContext} -n omec describe pod spgwu-0 > ${k8sLogDir}/spgwu-describe.log
-        kubectl --context ${params.cpContext} -n omec get pod hss-0 -o yaml > ${k8sLogDir}/hss-get.log
-        kubectl --context ${params.cpContext} -n omec get pod mme-0 -o yaml > ${k8sLogDir}/mme-get.log
-        kubectl --context ${params.cpContext} -n omec get pod spgwc-0 -o yaml > ${k8sLogDir}/spgwc-get.log
-        kubectl --context ${params.dpContext} -n omec get pod spgwu-0 -o yaml > ${k8sLogDir}/spgwu-get.log
+        kubectl --context ${params.cpContext} -n omec get pods > ${k8sLogDir}/cp-pods.log || true
+        kubectl --context ${params.dpContext} -n omec get pods > ${k8sLogDir}/dp-pods.log || true
+        kubectl --context ${params.cpContext} -n omec describe pod hss-0 > ${k8sLogDir}/hss-describe.log || true
+        kubectl --context ${params.cpContext} -n omec describe pod mme-0 > ${k8sLogDir}/mme-describe.log || true
+        kubectl --context ${params.cpContext} -n omec describe pod spgwc-0 > ${k8sLogDir}/spgwc-describe.log || true
+        kubectl --context ${params.dpContext} -n omec describe pod spgwu-0 > ${k8sLogDir}/spgwu-describe.log || true
+        kubectl --context ${params.cpContext} -n omec get pod hss-0 -o yaml > ${k8sLogDir}/hss-get.log || true
+        kubectl --context ${params.cpContext} -n omec get pod mme-0 -o yaml > ${k8sLogDir}/mme-get.log || true
+        kubectl --context ${params.cpContext} -n omec get pod spgwc-0 -o yaml > ${k8sLogDir}/spgwc-get.log || true
+        kubectl --context ${params.dpContext} -n omec get pod spgwu-0 -o yaml > ${k8sLogDir}/spgwu-get.log || true
 
         # Get container logs
         mkdir ${containterLogDir}

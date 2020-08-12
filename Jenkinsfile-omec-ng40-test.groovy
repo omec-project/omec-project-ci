@@ -30,6 +30,7 @@ pipeline {
       ng40Dir = "/home/ng40/config/ng40cvnf"
       ng40LogDir = "log"
       ng40PcapDir = "pcap"
+      metricsDir = "metrics"
   }
 
   stages {
@@ -40,6 +41,7 @@ pipeline {
         pkill kubectl-sniff || true
         mkdir ${ng40LogDir}
         mkdir ${ng40PcapDir}
+        mkdir ${metricsDir}
         """
       }
     }
@@ -58,6 +60,10 @@ pipeline {
         nohup kubectl sniff -n omec spgwu-0 -o ${ng40PcapDir}/spgwu.pcap > /dev/null 2>&1 &
         sleep 5
         """
+        sh label: 'Get MME metrics before starting tests', script: """
+        mme_external_ip=\$(kubectl --context ${params.cpContext} get services -n omec | grep mme-external | awk '{print \$3}')
+        curl \$mme_external_ip:3081/metrics 2>/dev/null 1>${metricsDir}/mme-metrics-before-tests.log
+        """
       }
     }
 
@@ -69,6 +75,10 @@ pipeline {
         cd ${env.ng40Dir}/testlist
         ng40test ${ntlFile}
         '
+        # Restarting sgpwc is required after running 1K UE test
+        # Remove the following lines once there is a fix
+        kubectl config use-context ${params.cpContext}
+        kubectl delete pods -n pfcp spgwc-0 || true
         """
       }
     }
@@ -143,6 +153,13 @@ pipeline {
         """
 
         archiveArtifacts artifacts: "${ng40PcapDir}/*", allowEmptyArchive: true
+
+        //Get metrics again
+        sh label: 'Get MME metrics after tests', script: """
+        mme_external_ip=\$(kubectl --context ${params.cpContext} get services -n omec | grep mme-external | awk '{print \$3}')
+        curl \$mme_external_ip:3081/metrics 2>/dev/null 1>${metricsDir}/mme-metrics-after-tests.log
+        """
+        archiveArtifacts artifacts: "${metricsDir}/*", allowEmptyArchive: true
       }
     }
   }

@@ -1,0 +1,7 @@
+{
+    "graph_title" : "NG40 Scaling",
+    "graph_subtitle" : "Results of Last 5 Builds",
+    "x_axis_title" : "Build #",
+    "y_axis_title" : "Number of UEs",
+    "builds_to_show" : 5
+}

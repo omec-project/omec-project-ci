@@ -67,7 +67,7 @@ pipeline {
           kubectl --context ${params.dpContext} -n omec wait \
                   --for=delete \
                   --timeout=300s \
-                  pod -l app=spgwu || true
+                  pod -l app=upf || true
 
         """
       }
@@ -113,7 +113,7 @@ pipeline {
             kubectl --context ${params.dpContext} -n omec wait \
                     --for=condition=Ready \
                     --timeout=300s \
-                    pod -l app=spgwu
+                    pod -l app=upf
           """
         }
       }

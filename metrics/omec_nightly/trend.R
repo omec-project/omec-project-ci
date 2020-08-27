@@ -43,7 +43,8 @@ print( "**********************************************************" )
 print( "STEP 2: Organize Data." )
 print( "**********************************************************" )
 
-dataFrame <- melt(usableData)
+# Exclude "build" column in dataframe
+dataFrame <- melt(usableData[names(usableData) != "build"])
 
 # Rename column names in dataFrame
 colnames(dataFrame) <- c("Status",
@@ -56,6 +57,7 @@ dataFrame$failed_attach <- usableData$failed_attach
 dataFrame$failed_detach <- usableData$failed_detach
 dataFrame$failed_ping <- usableData$failed_ping
 dataFrame$display_quantity <- dataFrame$Quantity
+dataFrame$build <- usableData$build
 
 # For values that are 0.1, we will display these as 0 on the plot.
 for (i in 1:nrow(dataFrame)) {
@@ -129,7 +131,7 @@ fpColor <- geom_ribbon( aes( ymin = 0,
 
 # X-axis config
 xScaleConfig <- scale_x_continuous( breaks = dataFrame$iterative,
-                                   label = dataFrame$iterative )
+                                   label = dataFrame$build )
 # Y-axis config
 yAxisTicksExponents <- seq( -1, floor( max( c( max( dataFrame$successful_attach ), max( dataFrame$successful_detach ), max( dataFrame$failed_attach ), max( dataFrame$failed_detach ), max( dataFrame$failed_ping ) ) ) ^ 0.1 ) + 10, by=1 )
 yAxisTicks <- 10 ^ yAxisTicksExponents

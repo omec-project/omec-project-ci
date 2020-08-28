@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2020-present Open Networking Foundation <info@opennetworking.org>
+# SPDX-License-Identifier: Apache-2.0
+# Generates trend graph for omec_nightly job
+
 print( "**********************************************************" )
 print( "STEP 1: Data management." )
 print( "**********************************************************" )

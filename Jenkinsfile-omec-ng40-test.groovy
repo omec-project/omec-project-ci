@@ -61,8 +61,8 @@ pipeline {
         sleep 5
         """
         sh label: 'Get MME metrics before starting tests', script: """
-        mme_external_ip=\$(kubectl --context ${params.cpContext} get services -n omec | grep mme-external | awk '{print \$3}')
-        curl \$mme_external_ip:3081/metrics 2>/dev/null 1>${metricsDir}/mme-metrics-before-tests.log
+        mme_ip=\$(kubectl --context ${params.cpContext} get services -n omec | grep 'mme ' | awk '{print \$3}')
+        curl \$mme_ip:3081/metrics 2>/dev/null 1>${metricsDir}/mme-metrics-before-tests.log
         """
       }
     }
@@ -156,8 +156,8 @@ pipeline {
 
         //Get metrics again
         sh label: 'Get MME metrics after tests', script: """
-        mme_external_ip=\$(kubectl --context ${params.cpContext} get services -n omec | grep mme-external | awk '{print \$3}')
-        curl \$mme_external_ip:3081/metrics 2>/dev/null 1>${metricsDir}/mme-metrics-after-tests.log
+        mme_ip=\$(kubectl --context ${params.cpContext} get services -n omec | grep 'mme ' | awk '{print \$3}')
+        curl \$mme_ip:3081/metrics 2>/dev/null 1>${metricsDir}/mme-metrics-after-tests.log
         """
         archiveArtifacts artifacts: "${metricsDir}/*", allowEmptyArchive: true
       }

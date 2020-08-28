@@ -35,6 +35,7 @@ pipeline {
           checkout([
             $class: 'GitSCM',
             userRemoteConfigs: [[ url: "https://omecproject:${omecproject_api}@github.com/omec-project/${params.project}.git", refspec: "pull/${params.ghprbPullId}/head" ]],
+            branches: [[name: "FETCH_HEAD"]],
             extensions: [
               [$class: 'RelativeTargetDirectory', relativeTargetDir: "${params.project}"],
               [$class: 'SubmoduleOption', recursiveSubmodules: true]]
@@ -51,11 +52,8 @@ pipeline {
         }
         sh label: 'Docker build', script: """
           cd ${params.project}
-          if [ ! -z "${params.ghprbPullId}" ]
+          if [ -z "${params.ghprbPullId}" ]
           then
-            echo "Checking out GitHub Pull Request: ${params.ghprbPullId}"
-            git checkout FETCH_HEAD
-          else
             echo "GERRIT_REFSPEC not provided. Checking out target branch."
             git checkout ${params.ghprbTargetBranch}
           fi

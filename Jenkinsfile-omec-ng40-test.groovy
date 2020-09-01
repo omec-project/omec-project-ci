@@ -57,7 +57,7 @@ pipeline {
         nohup kubectl sniff -n omec spgwc-0 -o ${ng40PcapDir}/spgwc.pcap > /dev/null 2>&1 &
         sleep 5
         kubectl config use-context ${params.dpContext}
-        nohup kubectl sniff -n omec spgwu-0 -o ${ng40PcapDir}/spgwu.pcap > /dev/null 2>&1 &
+        nohup kubectl sniff -n omec upf-0 -o ${ng40PcapDir}/upf.pcap > /dev/null 2>&1 &
         sleep 5
         """
         sh label: 'Get MME metrics before starting tests', script: """

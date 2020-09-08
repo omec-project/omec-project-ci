@@ -48,11 +48,11 @@ pipeline {
         kubectl --context ${params.cpContext} -n omec describe pod hss-0 > ${k8sLogDir}/hss-describe.log || true
         kubectl --context ${params.cpContext} -n omec describe pod mme-0 > ${k8sLogDir}/mme-describe.log || true
         kubectl --context ${params.cpContext} -n omec describe pod spgwc-0 > ${k8sLogDir}/spgwc-describe.log || true
-        kubectl --context ${params.dpContext} -n omec describe pod spgwu-0 > ${k8sLogDir}/spgwu-describe.log || true
+        kubectl --context ${params.dpContext} -n omec describe pod upf-0 > ${k8sLogDir}/upf-describe.log || true
         kubectl --context ${params.cpContext} -n omec get pod hss-0 -o yaml > ${k8sLogDir}/hss-get.log || true
         kubectl --context ${params.cpContext} -n omec get pod mme-0 -o yaml > ${k8sLogDir}/mme-get.log || true
         kubectl --context ${params.cpContext} -n omec get pod spgwc-0 -o yaml > ${k8sLogDir}/spgwc-get.log || true
-        kubectl --context ${params.dpContext} -n omec get pod spgwu-0 -o yaml > ${k8sLogDir}/spgwu-get.log || true
+        kubectl --context ${params.dpContext} -n omec get pod upf-0 -o yaml > ${k8sLogDir}/upf-get.log || true
 
         # Get container logs
         mkdir ${containterLogDir}
@@ -62,10 +62,10 @@ pipeline {
         kubectl --context ${params.cpContext} -n omec logs --timestamps mme-0 -c s6a-app > ${containterLogDir}/s6a-app.log || true
         kubectl --context ${params.cpContext} -n omec logs --timestamps mme-0 -c s11-app > ${containterLogDir}/s11-app.log || true
         kubectl --context ${params.cpContext} -n omec logs --timestamps spgwc-0 > ${containterLogDir}/spgwc.log || true
-        kubectl --context ${params.dpContext} -n omec logs --timestamps spgwu-0 -c routectl > ${containterLogDir}/routectl.log || true
-        kubectl --context ${params.dpContext} -n omec logs --timestamps spgwu-0 -c bessd > ${containterLogDir}/bessd.log || true
-        kubectl --context ${params.dpContext} -n omec logs --timestamps spgwu-0 -c web > ${containterLogDir}/web.log || true
-        kubectl --context ${params.dpContext} -n omec logs --timestamps spgwu-0 -c cpiface > ${containterLogDir}/cpiface.log || true
+        kubectl --context ${params.dpContext} -n omec logs --timestamps upf-0 -c routectl > ${containterLogDir}/routectl.log || true
+        kubectl --context ${params.dpContext} -n omec logs --timestamps upf-0 -c bessd > ${containterLogDir}/bessd.log || true
+        kubectl --context ${params.dpContext} -n omec logs --timestamps upf-0 -c web > ${containterLogDir}/web.log || true
+        kubectl --context ${params.dpContext} -n omec logs --timestamps upf-0 -c cpiface > ${containterLogDir}/cpiface.log || true
         """
       }
     }

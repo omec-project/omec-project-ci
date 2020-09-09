@@ -73,12 +73,8 @@ pipeline {
         ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ${params.ng40VM} '
         ng40forcecleanup all
         cd ${env.ng40Dir}/testlist
-        ng40test ${ntlFile}
+        ng40test ${params.ntlFile}
         '
-        # Restarting sgpwc is required after running 1K UE test
-        # Remove the following lines once there is a fix
-        kubectl config use-context ${params.cpContext}
-        kubectl delete pods -n pfcp spgwc-0 || true
         """
       }
     }
@@ -86,6 +82,15 @@ pipeline {
   post {
     always {
       script {
+        if (params.ntlFile == "scaling.ntl" ) {
+          // Restarting sgpwc is required after running 1K UE test
+          // Remove the following lines once there is a fix
+          sh label: 'Delete spgwc pod', script: """
+          kubectl config use-context ${params.cpContext}
+          kubectl delete pods -n pfcp spgwc-0 || true
+          """
+        }
+
         //Get testcase log filename
         testcase_output_filename = sh returnStdout: true, script: """
         ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ${params.ng40VM} '
@@ -108,6 +113,29 @@ pipeline {
         ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ${params.ng40VM} '
         grep "Run test case" ${env.ng40Dir}/testlist/log/${testcase_output_filename} | wc -l
         '
+        """
+        testcase_num = testcase_num.trim()
+
+        //Get number of test cases passed
+        passed_testcase_num = sh returnStdout: true, script: """
+        ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ${params.ng40VM} '
+        grep VERDICT_PASS ${env.ng40Dir}/testlist/log/${testcase_output_filename} | grep -v "Testlist verdict" | wc -l
+        '
+        """
+        passed_testcase_num = passed_testcase_num.trim()
+
+        //Get number of test cases failed
+        failed_testcase_num = sh returnStdout: true, script: """
+        ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ${params.ng40VM} '
+        grep VERDICT_FAIL ${env.ng40Dir}/testlist/log/${testcase_output_filename} | grep -v "Testlist verdict" | wc -l
+        '
+        """
+        failed_testcase_num = failed_testcase_num.trim()
+
+        // Generate csv file
+        sh returnStdout: true, script: """
+        echo "failed_cases,passed_cases,planned_cases" > ${ng40LogDir}/results.csv
+        echo "${failed_testcase_num},${passed_testcase_num},${testcase_num}" >> ${ng40LogDir}/results.csv
         """
 
         //Get a list of test logs

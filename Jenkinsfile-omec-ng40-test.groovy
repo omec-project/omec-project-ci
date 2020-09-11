@@ -99,15 +99,6 @@ pipeline {
         """
         testcase_output_filename = testcase_output_filename.trim()
 
-        //Display testcase log
-        testcase_output_log = sh returnStdout: true, script: """
-        ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ${params.ng40VM} '
-        cat ${env.ng40Dir}/testlist/log/${testcase_output_filename}
-        '
-        """
-        echo "=========== Testcase Log ==========="
-        echo "${testcase_output_log}"
-
         //Get number of test cases executed
         testcase_num = sh returnStdout: true, script: """
         ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ${params.ng40VM} '
@@ -134,8 +125,9 @@ pipeline {
 
         // Generate csv file
         sh returnStdout: true, script: """
-        echo "failed_cases,passed_cases,planned_cases" > ${ng40LogDir}/results.csv
-        echo "${failed_testcase_num},${passed_testcase_num},${testcase_num}" >> ${ng40LogDir}/results.csv
+        csv_file=\$(echo ${testcase_output_filename} | cut -d. -f1)".csv"
+        echo "failed_cases,passed_cases,planned_cases" > ${ng40LogDir}/\$csv_file
+        echo "${failed_testcase_num},${passed_testcase_num},${testcase_num}" >> ${ng40LogDir}/\$csv_file
         """
 
         //Get a list of test logs

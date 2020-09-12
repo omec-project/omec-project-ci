@@ -74,6 +74,7 @@ pipeline {
         ng40forcecleanup all
         cd ${env.ng40Dir}/testlist
         ng40test ${params.ntlFile}
+        ng40forcecleanup all
         '
         """
       }

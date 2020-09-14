@@ -82,6 +82,11 @@ pipeline {
   post {
     always {
       script {
+        sh label: 'NG40 cleanup', script: """
+        ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ${params.ng40VM} '
+        ng40forcecleanup all
+        '
+        """
         if (params.ntlFile == "scaling.ntl" ) {
           // Restarting sgpwc is required after running 1K UE test
           // Remove the following lines once there is a fix

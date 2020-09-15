@@ -247,15 +247,15 @@ print( "Generating line plot." )
 lineGraphFormat <- geom_line( size = 1.1 )
 pointFormat <- geom_point( size = 4 )
 pointLabel <- geom_text_repel(aes(label=display_quantity),
-                              size = 7)
+                              size = 6)
 
 result <- fundamentalGraphDataAttach +
            lineGraphFormat +
            pointFormat +
            pointLabel
 
-imageWidth <- 25
-imageHeight <- 10
+imageWidth <- 21
+imageHeight <- 9
 imageDPI <- 200
 
 print("Saving plot...")

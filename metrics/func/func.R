@@ -48,7 +48,7 @@ print( "STEP 2: Organize Data." )
 print( "**********************************************************" )
 
 # Exclude "build" column in dataframe
-dataFrame <- melt(usableData[names(usableData) != "build"])
+dataFrame <- melt(usableData[c("planned_cases", "passed_cases", "failed_cases")])
 
 # Rename column names in dataFrame
 colnames(dataFrame) <- c("Status",
@@ -102,7 +102,7 @@ plcColor <- geom_ribbon( aes( ymin = 0,
                              ymax = planned_cases ),
                              fill = "#3399FF",
                              linetype = 0,
-                             alpha = 0.07 )
+                             alpha = 0.02 )
 
 # X-axis config
 xScaleConfig <- scale_x_continuous( breaks = dataFrame$iterative,
@@ -129,15 +129,15 @@ theme <- theme( plot.title = element_text( hjust = 0.5, size = 32, face ='bold' 
            plot.subtitle = element_text( size=16, hjust=1.0 ) )
 
 # Wrap legend
-wrapLegend <- guides( color = guide_legend( nrow = 2, byrow = TRUE ) )
+wrapLegend <- guides( color = guide_legend( nrow = 1, byrow = TRUE ) )
 
 # Colors for the lines
-lineColors <- scale_color_manual( labels = c( "Failed Cases",
+lineColors <- scale_color_manual( labels = c( "Planned Cases",
                                               "Passed Cases",
-                                              "Planned Cases"),
-                                  values=c( "#FF0000",
+                                              "Failed Cases"),
+                                  values=c( "#3399FF",
                                            "#33CC33",
-                                           "#3399FF") )
+                                           "#FF0000") )
 
 # Store plot configurations as 1 variable
 fundamentalGraphData <- mainPlot +

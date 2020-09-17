@@ -60,10 +60,12 @@ pipeline {
         nohup kubectl sniff -n omec upf-0 -o ${ng40PcapDir}/upf.pcap > /dev/null 2>&1 &
         sleep 5
         """
-        sh label: 'Get MME metrics before starting tests', script: """
-        mme_ip=\$(kubectl --context ${params.cpContext} get services -n omec | grep 'mme ' | awk '{print \$3}')
-        curl \$mme_ip:3081/metrics 2>/dev/null 1>${metricsDir}/mme-metrics-before-tests.log
-        """
+        catchError {
+          sh label: 'Get MME metrics before starting tests', script: """
+          mme_ip=\$(kubectl --context ${params.cpContext} get services -n omec | grep 'mme ' | awk '{print \$3}')
+          curl \$mme_ip:3081/metrics 2>/dev/null 1>${metricsDir}/mme-metrics-before-tests.log
+          """
+        }
       }
     }
 

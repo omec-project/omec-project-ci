@@ -40,6 +40,7 @@ data <-
 usableData <- tail(data, config$builds_to_show)
 usableData$total_ues_attach <- floor(usableData$successful_attach + usableData$failed_attach)
 usableData$total_ues_detach <- floor(usableData$successful_detach + usableData$failed_detach)
+usableData$total_ues_ping <- floor(usableData$successful_ping + usableData$failed_ping)
 
 # **********************************************************
 # STEP 2: Organize data.
@@ -52,7 +53,7 @@ print( "**********************************************************" )
 # Exclude "build" column in dataframe
 dataFrameAttach <- melt(usableData[c("total_ues_attach", "successful_attach", "failed_attach")])
 dataFrameDetach <- melt(usableData[c("total_ues_detach", "successful_detach", "failed_detach")])
-dataFramePing <- melt(usableData[c("failed_ping")])
+dataFramePing <- melt(usableData[c("total_ues_ping", "successful_ping", "failed_ping")])
 
 # Rename column names in dataFrameAttach
 colnames(dataFrameAttach) <- c("Status",
@@ -80,6 +81,8 @@ dataFrameDetach$display_quantity <- dataFrameDetach$Quantity
 dataFrameDetach$build <- usableData$build
 
 dataFramePing$failed_ping <- usableData$failed_ping
+dataFramePing$successful_ping <- usableData$successful_ping
+dataFramePing$total_ues <- usableData$total_ues_ping
 dataFramePing$display_quantity <- dataFramePing$Quantity
 dataFramePing$build <- usableData$build
 
@@ -178,12 +181,19 @@ fdColor <- geom_ribbon( aes( ymin = 0,
                              linetype = 0,
                              alpha = 0.07 )
 
+spColor <- geom_ribbon( aes( ymin = 0,
+                             xmin = 0,
+                             ymax = successful_ping ),
+                             fill = "#33CC33",
+                             linetype = 0,
+                             alpha = 0.07 )
+
 fpColor <- geom_ribbon( aes( ymin = 0,
                              xmin = 0,
                              ymax = failed_ping ),
-                             fill = "#999900",
+                             fill = "#FF0000",
                              linetype = 0,
-                             alpha = 0.05 )
+                             alpha = 0.07 )
 
 
 # X-axis config
@@ -195,10 +205,6 @@ yAxisTicks <- 10 ^ yAxisTicksExponents
 yAxisTicksLabels <- floor( yAxisTicks )
 yScaleConfig <- scale_y_log10( breaks = yAxisTicks,
                                labels = yAxisTicksLabels )
-
-yScaleConfigPing <- scale_y_continuous( breaks = seq( 0, max( dataFramePing$failed_ping + 10),
-                                   by = ceiling( max( dataFramePing$failed_ping ) / 10 ) + 1 ) )
-
 
 # Axis labels
 xLabel <- xlab(config$x_axis_title)
@@ -310,14 +316,20 @@ print("Success for Detach")
 title <- labs( title = paste(config$graph_title, "Ping Results"), subtitle = paste( "Last Updated: ", format( Sys.time(), "%b %d, %Y at %I:%M %p %Z" ), sep="" ) )
 
 # Colors for the lines for Ping
-lineColors <- scale_color_manual( labels = c( "Failed Ping" ),
-                                  values=c( "#999900" ) )
+lineColors <- scale_color_manual( labels = c( "Total UEs",
+                                              "Successful Ping",
+                                              "Failed Ping" ),
+                                  values=c( "#3399FF",
+                                            "#33CC33",
+                                            "#CC0000" ) )
 
 # Store plot configurations as 1 variable
 fundamentalGraphDataDetach <- mainPlotPing +
+                              taColor +
+                              spColor +
                               fpColor +
                               xScaleConfig +
-                              yScaleConfigPing +
+                              yScaleConfig +
                               xLabel +
                               yLabel +
                               theme +

@@ -75,13 +75,13 @@ pipeline {
       steps {
         script {
           // Get latest image tags for each component
-          hssdb_tag = sh returnStdout: true, script: """curl -s 'https://registry.hub.docker.com/v2/repositories/omecproject/c3po-hssdb/tags/' | jq '.results[] | select(.name | contains("${c3poBranch}")).name' | head -1 | tr -d \\\""""
-          hss_tag = sh returnStdout: true, script: """curl -s 'https://registry.hub.docker.com/v2/repositories/omecproject/c3po-hss/tags/' | jq '.results[] | select(.name | contains("${c3poBranch}")).name' | head -1 | tr -d \\\""""
-          mme_tag = sh returnStdout: true, script: """curl -s 'https://registry.hub.docker.com/v2/repositories/omecproject/nucleus/tags/' | jq '.results[] | select(.name | contains("${nucleusBranch}")).name' | head -1 | tr -d \\\""""
-          spgwc_tag = sh returnStdout: true, script: """curl -s 'https://registry.hub.docker.com/v2/repositories/omecproject/spgw/tags/' | jq '.results[] | select(.name | contains("${spgwBranch}")).name' | head -1 | tr -d \\\""""
-          bess_tag = sh returnStdout: true, script: """curl -s 'https://registry.hub.docker.com/v2/repositories/omecproject/upf-epc-bess/tags/' | jq '.results[] | select(.name | contains("${upfBranch}")).name' | head -1 | tr -d \\\""""
-          zmqiface_tag = sh returnStdout: true, script: """curl -s 'https://registry.hub.docker.com/v2/repositories/omecproject/upf-epc-cpiface/tags/' | jq '.results[] | select(.name | contains("${upfBranch}")).name' | head -1 | tr -d \\\""""
-          pfcpiface_tag = sh returnStdout: true, script: """curl -s 'https://registry.hub.docker.com/v2/repositories/omecproject/upf-epc-pfcpiface/tags/' | jq '.results[] | select(.name | contains("${upfBranch}")).name' | head -1 | tr -d \\\""""
+          hssdb_tag = sh returnStdout: true, script: """curl -s 'https://registry.hub.docker.com/v2/repositories/omecproject/c3po-hssdb/tags/' | jq '.results[] | select(.name | test("${c3poBranch}-[0-9a-z]{7}\$")).name' | head -1 | tr -d \\\""""
+          hss_tag = sh returnStdout: true, script: """curl -s 'https://registry.hub.docker.com/v2/repositories/omecproject/c3po-hss/tags/' | jq '.results[] | select(.name | test("${c3poBranch}-[0-9a-z]{7}\$")).name' | head -1 | tr -d \\\""""
+          mme_tag = sh returnStdout: true, script: """curl -s 'https://registry.hub.docker.com/v2/repositories/omecproject/nucleus/tags/' | jq '.results[] | select(.name | test("${nucleusBranch}-[0-9a-z]{7}\$")).name' | head -1 | tr -d \\\""""
+          spgwc_tag = sh returnStdout: true, script: """curl -s 'https://registry.hub.docker.com/v2/repositories/omecproject/spgw/tags/' | jq '.results[] | select(.name | test("${spgwBranch}-[0-9a-z]{7}\$")).name' | head -1 | tr -d \\\""""
+          bess_tag = sh returnStdout: true, script: """curl -s 'https://registry.hub.docker.com/v2/repositories/omecproject/upf-epc-bess/tags/' | jq '.results[] | select(.name | test("${upfBranch}-[0-9a-z]{7}\$")).name' | head -1 | tr -d \\\""""
+          zmqiface_tag = sh returnStdout: true, script: """curl -s 'https://registry.hub.docker.com/v2/repositories/omecproject/upf-epc-cpiface/tags/' | jq '.results[] | select(.name | test("${upfBranch}-[0-9a-z]{7}\$")).name' | head -1 | tr -d \\\""""
+          pfcpiface_tag = sh returnStdout: true, script: """curl -s 'https://registry.hub.docker.com/v2/repositories/omecproject/upf-epc-pfcpiface/tags/' | jq '.results[] | select(.name | test("${upfBranch}-[0-9a-z]{7}\$")).name' | head -1 | tr -d \\\""""
 
           hssdb_image = "omecproject/c3po-hssdb:"+hssdb_tag
           hss_image = "omecproject/c3po-hss:"+hss_tag

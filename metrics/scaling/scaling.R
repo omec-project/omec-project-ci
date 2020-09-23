@@ -42,6 +42,19 @@ usableData$total_ues_attach <- floor(usableData$successful_attach + usableData$f
 usableData$total_ues_detach <- floor(usableData$successful_detach + usableData$failed_detach)
 usableData$total_ues_ping <- floor(usableData$successful_ping + usableData$failed_ping)
 
+# For values that are 0, we will convert them to 0.1 on the plot.
+for (i in 1:nrow(usableData)) {
+    if (usableData[i, "total_ues_attach"] == 0){
+        usableData[i, "total_ues_attach"] <- 0.1
+    }
+    if (usableData[i, "total_ues_detach"] == 0){
+        usableData[i, "total_ues_detach"] <- 0.1
+    }
+    if (usableData[i, "total_ues_ping"] == 0){
+        usableData[i, "total_ues_ping"] <- 0.1
+    }
+}
+
 # **********************************************************
 # STEP 2: Organize data.
 # **********************************************************

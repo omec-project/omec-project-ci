@@ -63,11 +63,11 @@ pipeline {
           kubectl --context ${params.cpContext} -n omec wait \
                   --for=delete \
                   --timeout=300s \
-                  pod -l app=spgwc || true
+                  pod -l release=omec-control-plane || true
           kubectl --context ${params.dpContext} -n omec wait \
                   --for=delete \
                   --timeout=300s \
-                  pod -l app=upf || true
+                  pod -l release=omec-user-plane || true
 
         """
       }
@@ -92,7 +92,7 @@ pipeline {
             kubectl --context ${params.cpContext} -n omec wait \
                     --for=condition=Ready \
                     --timeout=1200s \
-                    pod -l app=spgwc
+                    pod -l release=omec-control-plane
           """
         }
       }
@@ -113,7 +113,7 @@ pipeline {
             kubectl --context ${params.dpContext} -n omec wait \
                     --for=condition=Ready \
                     --timeout=300s \
-                    pod -l app=upf
+                    pod -l release=omec-user-plane
           """
         }
       }

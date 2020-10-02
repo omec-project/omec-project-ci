@@ -1,0 +1,5 @@
+{
+    "graph_title" : "ONOS-RIC Helmit Benchmark",
+    "x_axis_title" : "Build #",
+    "builds_to_show" : 15
+}

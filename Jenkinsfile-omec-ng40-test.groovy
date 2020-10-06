@@ -89,14 +89,6 @@ pipeline {
         ng40forcecleanup all
         '
         """
-        if (params.ntlFile == "scaling.ntl" ) {
-          // Restarting sgpwc is required after running 1K UE test
-          // Remove the following lines once there is a fix
-          sh label: 'Delete spgwc pod', script: """
-          kubectl config use-context ${params.cpContext}
-          kubectl delete pods -n pfcp spgwc-0 || true
-          """
-        }
 
         //Get testcase log filename
         testcase_output_filename = sh returnStdout: true, script: """

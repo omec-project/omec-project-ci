@@ -64,6 +64,10 @@ pipeline {
           sh label: 'Get MME metrics before starting tests', script: """
           mme_ip=\$(kubectl --context ${params.cpContext} get services -n omec | grep 'mme ' | awk '{print \$3}')
           curl \$mme_ip:3081/metrics 2>/dev/null 1>${metricsDir}/mme-metrics-before-tests.log
+          hss_ip=\$(kubectl --context ${params.cpContext} get services -n omec | grep 'hss ' | awk '{print \$3}')
+          curl \$hss_ip:9089/metrics 2>/dev/null 1>${metricsDir}/hss-metrics-before-tests.log
+          spgwc_ip=\$(kubectl --context ${params.cpContext} get services -n omec | grep 'spgwc ' | awk '{print \$3}')
+          curl \$spgwc_ip:9089/metrics 2>/dev/null 1>${metricsDir}/spgwc-metrics-before-tests.log
           """
         }
       }
@@ -177,6 +181,10 @@ pipeline {
         sh label: 'Get MME metrics after tests', script: """
         mme_ip=\$(kubectl --context ${params.cpContext} get services -n omec | grep 'mme ' | awk '{print \$3}')
         curl \$mme_ip:3081/metrics 2>/dev/null 1>${metricsDir}/mme-metrics-after-tests.log
+        hss_ip=\$(kubectl --context ${params.cpContext} get services -n omec | grep 'hss ' | awk '{print \$3}')
+        curl \$hss_ip:9089/metrics 2>/dev/null 1>${metricsDir}/hss-metrics-after-tests.log
+        spgwc_ip=\$(kubectl --context ${params.cpContext} get services -n omec | grep 'spgwc ' | awk '{print \$3}')
+        curl \$spgwc_ip:9089/metrics 2>/dev/null 1>${metricsDir}/spgwc-metrics-after-tests.log
         """
         archiveArtifacts artifacts: "${metricsDir}/*", allowEmptyArchive: true
       }

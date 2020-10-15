@@ -76,7 +76,8 @@ pipeline {
     stage('Deploy Control Plane') {
       steps {
         withCredentials([string(credentialsId: 'aether-secret-deploy-test', variable: 'deploy_path'),
-                         string(credentialsId: 'aether-secret-helm-charts', variable: 'helm_charts_path')]) {
+                         string(credentialsId: 'aether-secret-helm-charts', variable: 'helm_charts_path'),
+                         usernamePassword(credentialsId: 'registry.aetherproject.org', passwordVariable: 'pass', usernameVariable: 'user')]) {
           sh label: "helm dep up", script: """
             cd ${helm_charts_path}/omec-control-plane
             helm dep up
@@ -86,9 +87,17 @@ pipeline {
                          --name omec-control-plane \
                          --namespace omec \
                          --values ${deploy_path}/${omec_cp} \
+                         --set images.credentials.registry=registry.aetherproject.org \
+                         --set images.credentials.username=${user} \
+                         --set images.credentials.password=${pass} \
                          --set images.pullPolicy=Always \
                          ${helm_args_control_plane} \
                          ${helm_charts_path}/omec-control-plane
+            kubectl --context ${params.cpContext} -n omec wait \
+                    --for=condition=Ready \
+                    --timeout=1200s \
+                    pod -l release=omec-control-plane
+            sleep 5
             kubectl --context ${params.cpContext} -n omec wait \
                     --for=condition=Ready \
                     --timeout=1200s \
@@ -101,15 +110,24 @@ pipeline {
     stage('Deploy Data Plane') {
       steps {
         withCredentials([string(credentialsId: 'aether-secret-deploy-test', variable: 'deploy_path'),
-                         string(credentialsId: 'aether-secret-helm-charts', variable: 'helm_charts_path')]) {
+                         string(credentialsId: 'aether-secret-helm-charts', variable: 'helm_charts_path'),
+                         usernamePassword(credentialsId: 'registry.aetherproject.org', passwordVariable: 'pass', usernameVariable: 'user')]) {
           sh label: "${params.dpContext}", script: """
             helm install --kube-context ${params.dpContext} \
                          --name omec-user-plane \
                          --namespace omec \
                          --values ${deploy_path}/${omec_dp} \
+                         --set images.credentials.registry=registry.aetherproject.org \
+                         --set images.credentials.username=${user} \
+                         --set images.credentials.password=${pass} \
                          --set images.pullPolicy=Always \
                          ${helm_args_data_plane} \
                          ${helm_charts_path}/omec-user-plane
+            kubectl --context ${params.dpContext} -n omec wait \
+                    --for=condition=Ready \
+                    --timeout=300s \
+                    pod -l release=omec-user-plane
+            sleep 5
             kubectl --context ${params.dpContext} -n omec wait \
                     --for=condition=Ready \
                     --timeout=300s \

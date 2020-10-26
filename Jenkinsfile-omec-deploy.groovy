@@ -37,9 +37,6 @@ pipeline {
           """
         }
         script {
-          omec_cp = "${params.centralConfig}/omec-cp.yaml"
-          omec_dp = "${params.edgeConfig}/omec-upf.yaml"
-
           helm_args_control_plane = ""
           if (params.hssdbImage) { helm_args_control_plane += " --set images.tags.hssdb=${params.hssdbImage}" }
           if (params.hssImage) { helm_args_control_plane += " --set images.tags.hss=${params.hssImage}" }
@@ -86,7 +83,7 @@ pipeline {
             helm install --kube-context ${params.cpContext} \
                          --name omec-control-plane \
                          --namespace omec \
-                         --values ${deploy_path}/${omec_cp} \
+                         --values ${deploy_path}/${params.centralConfig} \
                          --set images.credentials.registry=registry.aetherproject.org \
                          --set images.credentials.username=${user} \
                          --set images.credentials.password=${pass} \
@@ -116,7 +113,7 @@ pipeline {
             helm install --kube-context ${params.dpContext} \
                          --name omec-user-plane \
                          --namespace omec \
-                         --values ${deploy_path}/${omec_dp} \
+                         --values ${deploy_path}/${params.edgeConfig} \
                          --set images.credentials.registry=registry.aetherproject.org \
                          --set images.credentials.username=${user} \
                          --set images.credentials.password=${pass} \

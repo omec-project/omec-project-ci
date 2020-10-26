@@ -56,7 +56,11 @@ pipeline {
 
         # Get container logs
         mkdir ${containterLogDir}
+        kubectl --context ${params.cpContext} -n omec logs --timestamps --since=${params.logSince} cassandra-0 > ${containterLogDir}/cassandra-0.log || true
+        kubectl --context ${params.cpContext} -n omec logs --timestamps --since=${params.logSince} cassandra-1 > ${containterLogDir}/cassandra-1.log || true
+        kubectl --context ${params.cpContext} -n omec logs --timestamps --since=${params.logSince} cassandra-2 > ${containterLogDir}/cassandra-2.log || true
         kubectl --context ${params.cpContext} -n omec logs --timestamps --since=${params.logSince} hss-0 > ${containterLogDir}/hss.log || true
+        kubectl --context ${params.cpContext} -n omec logs --timestamps --since=${params.logSince} hss-0 -c hss-bootstrap > ${containterLogDir}/hss-bootstrap.log || true
         kubectl --context ${params.cpContext} -n omec logs --timestamps --since=${params.logSince} mme-0 -c s1ap-app > ${containterLogDir}/s1ap-app.log || true
         kubectl --context ${params.cpContext} -n omec logs --timestamps --since=${params.logSince} mme-0 -c mme-app > ${containterLogDir}/mme-app.log || true
         kubectl --context ${params.cpContext} -n omec logs --timestamps --since=${params.logSince} mme-0 -c s6a-app > ${containterLogDir}/s6a-app.log || true

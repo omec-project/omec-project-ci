@@ -49,10 +49,12 @@ pipeline {
         kubectl --context ${params.cpContext} -n omec describe pod mme-0 > ${k8sLogDir}/mme-describe.log || true
         kubectl --context ${params.cpContext} -n omec describe pod spgwc-0 > ${k8sLogDir}/spgwc-describe.log || true
         kubectl --context ${params.dpContext} -n omec describe pod upf-0 > ${k8sLogDir}/upf-describe.log || true
+        kubectl --context ${params.dpContext} -n omec describe pod pfcp-0 > ${k8sLogDir}/pfcp-describe.log || true
         kubectl --context ${params.cpContext} -n omec get pod hss-0 -o yaml > ${k8sLogDir}/hss-get.log || true
         kubectl --context ${params.cpContext} -n omec get pod mme-0 -o yaml > ${k8sLogDir}/mme-get.log || true
         kubectl --context ${params.cpContext} -n omec get pod spgwc-0 -o yaml > ${k8sLogDir}/spgwc-get.log || true
         kubectl --context ${params.dpContext} -n omec get pod upf-0 -o yaml > ${k8sLogDir}/upf-get.log || true
+        kubectl --context ${params.dpContext} -n omec get pod pfcp-0 -o yaml > ${k8sLogDir}/pfcp-get.log || true
 
         # Get container logs
         mkdir ${containterLogDir}
@@ -70,6 +72,7 @@ pipeline {
         kubectl --context ${params.dpContext} -n omec logs --timestamps --since=${params.logSince} upf-0 -c bessd > ${containterLogDir}/bessd.log || true
         kubectl --context ${params.dpContext} -n omec logs --timestamps --since=${params.logSince} upf-0 -c web > ${containterLogDir}/web.log || true
         kubectl --context ${params.dpContext} -n omec logs --timestamps --since=${params.logSince} upf-0 -c cpiface > ${containterLogDir}/cpiface.log || true
+        kubectl --context ${params.dpContext} -n omec logs --timestamps --since=${params.logSince} pfcp-0 > ${containterLogDir}/pfcp.log || true
         """
       }
     }

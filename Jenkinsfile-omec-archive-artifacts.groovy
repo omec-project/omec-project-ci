@@ -67,7 +67,8 @@ pipeline {
         kubectl --context ${params.cpContext} -n omec logs --timestamps --since=${params.logSince} mme-0 -c mme-app > ${containterLogDir}/mme-app.log || true
         kubectl --context ${params.cpContext} -n omec logs --timestamps --since=${params.logSince} mme-0 -c s6a-app > ${containterLogDir}/s6a-app.log || true
         kubectl --context ${params.cpContext} -n omec logs --timestamps --since=${params.logSince} mme-0 -c s11-app > ${containterLogDir}/s11-app.log || true
-        kubectl --context ${params.cpContext} -n omec logs --timestamps --since=${params.logSince} spgwc-0 > ${containterLogDir}/spgwc.log || true
+        kubectl --context ${params.cpContext} -n omec logs --timestamps --since=${params.logSince} spgwc-0 -c spgwc > ${containterLogDir}/spgwc.log || true
+        kubectl --context ${params.cpContext} -n omec logs --timestamps --since=${params.logSince} spgwc-0 -c gx-app > ${containterLogDir}/gx-app.log || true
         kubectl --context ${params.dpContext} -n omec logs --timestamps --since=${params.logSince} upf-0 -c routectl > ${containterLogDir}/routectl.log || true
         kubectl --context ${params.dpContext} -n omec logs --timestamps --since=${params.logSince} upf-0 -c bessd > ${containterLogDir}/bessd.log || true
         kubectl --context ${params.dpContext} -n omec logs --timestamps --since=${params.logSince} upf-0 -c web > ${containterLogDir}/web.log || true

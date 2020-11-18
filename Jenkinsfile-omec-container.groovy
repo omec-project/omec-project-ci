@@ -83,13 +83,13 @@ pipeline {
           zmqiface_tag = sh returnStdout: true, script: """curl -s 'https://registry.hub.docker.com/v2/repositories/omecproject/upf-epc-cpiface/tags/' | jq '.results[] | select(.name | test("${upfBranch}-[0-9a-z]{7}\$")) | select(.last_updater_username=="zdwonf") |.name' | head -1 | tr -d \\\""""
           pfcpiface_tag = sh returnStdout: true, script: """curl -s 'https://registry.hub.docker.com/v2/repositories/omecproject/upf-epc-pfcpiface/tags/' | jq '.results[] | select(.name | test("${upfBranch}-[0-9a-z]{7}\$")) | select(.last_updater_username=="zdwonf") |.name' | head -1 | tr -d \\\""""
 
-          hssdb_image = "omecproject/c3po-hssdb:"+hssdb_tag
-          hss_image = "omecproject/c3po-hss:"+hss_tag
-          mme_image = "omecproject/nucleus:"+mme_tag
-          spgwc_image = "omecproject/spgw:"+spgwc_tag
-          bess_image = "omecproject/upf-epc-bess:"+bess_tag
-          zmqiface_image = "omecproject/upf-epc-cpiface:"+zmqiface_tag
-          pfcpiface_image = "omecproject/upf-epc-pfcpiface:"+pfcpiface_tag
+          hssdb_image = "${params.registryProxy}/c3po-hssdb:"+hssdb_tag
+          hss_image = "${params.registryProxy}/c3po-hss:"+hss_tag
+          mme_image = "${params.registryProxy}/nucleus:"+mme_tag
+          spgwc_image = "${params.registryProxy}/spgw:"+spgwc_tag
+          bess_image = "${params.registryProxy}/upf-epc-bess:"+bess_tag
+          zmqiface_image = "${params.registryProxy}/upf-epc-cpiface:"+zmqiface_tag
+          pfcpiface_image = "${params.registryProxy}/upf-epc-pfcpiface:"+pfcpiface_tag
 
           switch("${params.project}") {
           case "c3po":

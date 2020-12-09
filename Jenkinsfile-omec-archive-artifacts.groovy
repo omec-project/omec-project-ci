@@ -58,33 +58,39 @@ pipeline {
 
         # Get container logs
         mkdir ${WORKSPACE}/${containterLogDir} && cd ${WORKSPACE}/${containterLogDir}
-        kubectl --context ${params.cpContext} -n omec logs --timestamps --since=${params.logSince} cassandra-0 > cassandra-0.log || true
-        kubectl --context ${params.cpContext} -n omec logs --timestamps --since=${params.logSince} cassandra-1 > cassandra-1.log || true
-        kubectl --context ${params.cpContext} -n omec logs --timestamps --since=${params.logSince} cassandra-2 > cassandra-2.log || true
-        kubectl --context ${params.cpContext} -n omec logs --timestamps --since=${params.logSince} hss-0 > hss.log || true
-        kubectl --context ${params.cpContext} -n omec logs --timestamps --since=${params.logSince} hss-0 --previous > hss-previous.log || rm hss-previous.log
-        kubectl --context ${params.cpContext} -n omec logs --timestamps --since=${params.logSince} hss-0 -c hss-bootstrap > hss-bootstrap.log || true
-        kubectl --context ${params.cpContext} -n omec logs --timestamps --since=${params.logSince} mme-0 -c s1ap-app > s1ap-app.log || true
-        kubectl --context ${params.cpContext} -n omec logs --timestamps --since=${params.logSince} mme-0 -c s1ap-app --previous > s1ap-app-previous.log || rm s1ap-app-previous.log
-        kubectl --context ${params.cpContext} -n omec logs --timestamps --since=${params.logSince} mme-0 -c mme-app > mme-app.log || true
-        kubectl --context ${params.cpContext} -n omec logs --timestamps --since=${params.logSince} mme-0 -c mme-app --previous > mme-app-previous.log || rm mme-app-previous.log
-        kubectl --context ${params.cpContext} -n omec logs --timestamps --since=${params.logSince} mme-0 -c s6a-app > s6a-app.log || true
-        kubectl --context ${params.cpContext} -n omec logs --timestamps --since=${params.logSince} mme-0 -c s6a-app --previous > s6a-app-previous.log || rm s6a-app-previous.log
-        kubectl --context ${params.cpContext} -n omec logs --timestamps --since=${params.logSince} mme-0 -c s11-app > s11-app.log || true
-        kubectl --context ${params.cpContext} -n omec logs --timestamps --since=${params.logSince} mme-0 -c s11-app --previous > s11-app-previous.log || rm s11-app-previous.log
-        kubectl --context ${params.cpContext} -n omec logs --timestamps --since=${params.logSince} spgwc-0 -c spgwc > spgwc.log || true
-        kubectl --context ${params.cpContext} -n omec logs --timestamps --since=${params.logSince} spgwc-0 -c spgwc --previous > spgwc-previous.log || rm spgwc-previous.log
-        kubectl --context ${params.cpContext} -n omec logs --timestamps --since=${params.logSince} spgwc-0 -c gx-app > gx-app.log || true
-        kubectl --context ${params.cpContext} -n omec logs --timestamps --since=${params.logSince} spgwc-0 -c gx-app --previous > gx-app-previous.log || rm gx-app-previous.log
-        kubectl --context ${params.dpContext} -n omec logs --timestamps --since=${params.logSince} upf-0 -c routectl > routectl.log || rm routectl.log
-        kubectl --context ${params.dpContext} -n omec logs --timestamps --since=${params.logSince} upf-0 -c routectl --previous > routectl-previous.log || rm routectl-previous.log
-        kubectl --context ${params.dpContext} -n omec logs --timestamps --since=${params.logSince} upf-0 -c bessd > bessd.log || rm bessd.log
-        kubectl --context ${params.dpContext} -n omec logs --timestamps --since=${params.logSince} upf-0 -c bessd --previous > bessd-previous.log || rm bessd-previous.log
-        kubectl --context ${params.dpContext} -n omec logs --timestamps --since=${params.logSince} upf-0 -c web > web.log || rm web.log
-        kubectl --context ${params.dpContext} -n omec logs --timestamps --since=${params.logSince} upf-0 -c web --previous > web-previous.log || rm web-previous.log
-        kubectl --context ${params.dpContext} -n omec logs --timestamps --since=${params.logSince} upf-0 -c cpiface > cpiface.log || rm cpiface.log
-        kubectl --context ${params.dpContext} -n omec logs --timestamps --since=${params.logSince} upf-0 -c cpiface --previous > cpiface-previous.log || rm cpiface-previous.log
-        kubectl --context ${params.dpContext} -n omec logs --timestamps --since=${params.logSince} pfcp-0 > pfcp.log || rm pfcp.log
+        extraArgs="-n omec logs --timestamps"
+        if [ ! -z "${params.logSince}" ]; then
+          extraArgs="\${extraArgs} --since=${params.logSince}"
+        elif [ ! -z "${params.logSinceTime}" ]; then
+          extraArgs="\${extraArgs} --since-time=${params.logSinceTime}"
+        fi
+        kubectl --context ${params.cpContext} \${extraArgs} cassandra-0 > cassandra-0.log || true
+        kubectl --context ${params.cpContext} \${extraArgs} cassandra-1 > cassandra-1.log || true
+        kubectl --context ${params.cpContext} \${extraArgs} cassandra-2 > cassandra-2.log || true
+        kubectl --context ${params.cpContext} \${extraArgs} hss-0 > hss.log || true
+        kubectl --context ${params.cpContext} \${extraArgs} hss-0 --previous > hss-previous.log || rm hss-previous.log
+        kubectl --context ${params.cpContext} \${extraArgs} hss-0 -c hss-bootstrap > hss-bootstrap.log || true
+        kubectl --context ${params.cpContext} \${extraArgs} mme-0 -c s1ap-app > s1ap-app.log || true
+        kubectl --context ${params.cpContext} \${extraArgs} mme-0 -c s1ap-app --previous > s1ap-app-previous.log || rm s1ap-app-previous.log
+        kubectl --context ${params.cpContext} \${extraArgs} mme-0 -c mme-app > mme-app.log || true
+        kubectl --context ${params.cpContext} \${extraArgs} mme-0 -c mme-app --previous > mme-app-previous.log || rm mme-app-previous.log
+        kubectl --context ${params.cpContext} \${extraArgs} mme-0 -c s6a-app > s6a-app.log || true
+        kubectl --context ${params.cpContext} \${extraArgs} mme-0 -c s6a-app --previous > s6a-app-previous.log || rm s6a-app-previous.log
+        kubectl --context ${params.cpContext} \${extraArgs} mme-0 -c s11-app > s11-app.log || true
+        kubectl --context ${params.cpContext} \${extraArgs} mme-0 -c s11-app --previous > s11-app-previous.log || rm s11-app-previous.log
+        kubectl --context ${params.cpContext} \${extraArgs} spgwc-0 -c spgwc > spgwc.log || true
+        kubectl --context ${params.cpContext} \${extraArgs} spgwc-0 -c spgwc --previous > spgwc-previous.log || rm spgwc-previous.log
+        kubectl --context ${params.cpContext} \${extraArgs} spgwc-0 -c gx-app > gx-app.log || true
+        kubectl --context ${params.cpContext} \${extraArgs} spgwc-0 -c gx-app --previous > gx-app-previous.log || rm gx-app-previous.log
+        kubectl --context ${params.dpContext} \${extraArgs} upf-0 -c routectl > routectl.log || rm routectl.log
+        kubectl --context ${params.dpContext} \${extraArgs} upf-0 -c routectl --previous > routectl-previous.log || rm routectl-previous.log
+        kubectl --context ${params.dpContext} \${extraArgs} upf-0 -c bessd > bessd.log || rm bessd.log
+        kubectl --context ${params.dpContext} \${extraArgs} upf-0 -c bessd --previous > bessd-previous.log || rm bessd-previous.log
+        kubectl --context ${params.dpContext} \${extraArgs} upf-0 -c web > web.log || rm web.log
+        kubectl --context ${params.dpContext} \${extraArgs} upf-0 -c web --previous > web-previous.log || rm web-previous.log
+        kubectl --context ${params.dpContext} \${extraArgs} upf-0 -c cpiface > cpiface.log || rm cpiface.log
+        kubectl --context ${params.dpContext} \${extraArgs} upf-0 -c cpiface --previous > cpiface-previous.log || rm cpiface-previous.log
+        kubectl --context ${params.dpContext} \${extraArgs} pfcp-0 > pfcp.log || rm pfcp.log
         tar czf container-logs.tgz *
         rm *.log
         """

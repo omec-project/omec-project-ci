@@ -53,9 +53,9 @@ pipeline {
     stage('Clean up') {
       steps {
         sh label: 'Reset Deployment', script: """
-          helm delete --purge --kube-context ${params.dpContext} omec-data-plane || true
-          helm delete --purge --kube-context ${params.dpContext} omec-user-plane || true
-          helm delete --purge --kube-context ${params.cpContext} omec-control-plane || true
+          helm delete --kube-context ${params.dpContext} -n omec omec-data-plane || true
+          helm delete --kube-context ${params.dpContext} -n omec omec-user-plane || true
+          helm delete --kube-context ${params.cpContext} -n omec omec-control-plane || true
 
           kubectl --context ${params.cpContext} -n omec wait \
                   --for=delete \
@@ -81,7 +81,7 @@ pipeline {
           """
           sh label: "${params.cpContext}", script: """
             helm install --kube-context ${params.cpContext} \
-                         --name omec-control-plane \
+                         omec-control-plane \
                          --namespace omec \
                          --values ${deploy_path}/${params.centralConfig} \
                          --set images.credentials.registry=registry.aetherproject.org \
@@ -111,7 +111,7 @@ pipeline {
                          usernamePassword(credentialsId: 'registry.aetherproject.org', passwordVariable: 'pass', usernameVariable: 'user')]) {
           sh label: "${params.dpContext}", script: """
             helm install --kube-context ${params.dpContext} \
-                         --name omec-user-plane \
+                         omec-user-plane \
                          --namespace omec \
                          --values ${deploy_path}/${params.edgeConfig} \
                          --set images.credentials.registry=registry.aetherproject.org \

@@ -31,16 +31,15 @@ pipeline {
 
     stage("Checkout") {
       steps {
-        withCredentials([string(credentialsId: '64fe2b1a-b33a-4f13-8442-ad8360434003', variable: 'omecproject_api')]) {
-          checkout([
-              $class           : 'GitSCM',
-              userRemoteConfigs: [[url: "https://omecproject:${omecproject_api}@github.com/omec-project/${params.project}.git", refspec: "pull/${params.ghprbPullId}/head"]],
-              branches         : [[name: "FETCH_HEAD"]],
-              extensions       : [
-                  [$class: 'RelativeTargetDirectory', relativeTargetDir: "${params.project}"],
-                  [$class: 'SubmoduleOption', recursiveSubmodules: true]]
-          ],)
-        }
+        checkout([
+            $class           : 'GitSCM',
+            userRemoteConfigs: [[url: "ssh://git@github.com/omec-project/${params.project}.git", refspec: "pull/${params.ghprbPullId}/head"]],
+            branches         : [[name: "FETCH_HEAD"]],
+            credentialsId    : 'github-onf-bot-ssh-key',
+            extensions       : [
+                [$class: 'RelativeTargetDirectory', relativeTargetDir: "${params.project}"],
+                [$class: 'SubmoduleOption', recursiveSubmodules: true]]
+        ],)
       }
     }
   }

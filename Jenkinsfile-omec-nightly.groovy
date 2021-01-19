@@ -33,7 +33,15 @@ pipeline {
     stage ("Deploy OMEC"){
       when { expression { return params.redeploy } }
       steps {
-        build job: "omec_deploy_${params.pod}"
+        build job: "omec_deploy_${params.pod}", parameters: [
+          string(name: 'hssdbImage', value: "${params.hssdbImage}"),
+          string(name: 'hssImage', value: "${params.hssImage}"),
+          string(name: 'mmeImage', value: "${params.mmeImage}"),
+          string(name: 'spgwcImage', value: "${params.spgwcImage}"),
+          string(name: 'bessImage', value: "${params.bessImage}"),
+          string(name: 'zmqifaceImage', value: "${params.zmqifaceImage}"),
+          string(name: 'pfcpifaceImage', value: "${params.pfcpifaceImage}"),
+        ]
       }
     }
 

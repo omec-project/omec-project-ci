@@ -121,7 +121,7 @@ pipeline {
 
     stage ("Deploy and Test"){
       options {
-        lock(resource: 'aether-dev-cluster')
+        lock(resource: 'dev')
       }
       steps {
         script {

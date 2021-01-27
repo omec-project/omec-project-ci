@@ -85,4 +85,9 @@ pipeline {
       }
     }
   }
+  post {
+    failure {
+      step([$class: 'Mailer', notifyEveryUnstableBuild: true, recipients: "${params.maintainers}", sendToIndividuals: false])
+    }
+  }
 }

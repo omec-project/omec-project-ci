@@ -55,6 +55,8 @@ for (i in 1:nrow(usableData)) {
     }
 }
 
+usableData <- usableData[order(usableData$build),]
+
 # **********************************************************
 # STEP 2: Organize data.
 # **********************************************************

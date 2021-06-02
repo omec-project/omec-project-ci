@@ -39,6 +39,8 @@ data <-
 # Use only latest x data determined from config file.
 usableData <- tail(data, config$builds_to_show)
 
+usableData <- usableData[order(usableData$build),]
+
 # **********************************************************
 # STEP 2: Organize data.
 # **********************************************************

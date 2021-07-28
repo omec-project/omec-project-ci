@@ -10,10 +10,19 @@ print( "**********************************************************" )
 print( "Reading commmand-line args." )
 args <- commandArgs(trailingOnly=TRUE)
 
-if (length(args) < 3){
-    print("Usage: Rscript trend.R <config-file> <data-file-directory> <output-path-filename>")
+if (length(args) < 7){
+    print("Usage: Rscript trend.R <config-file> <db_host> <db_port> <db_user> <db_pass> <db_table> <output-path-filename>")
     q(status=1)
 }
+
+config <- fromJSON(file = args[1])
+db_host <- args[2]
+db_port <- args[3]
+db_user <- args[4]
+db_pass <- args[5]
+db_table <- args[6]
+outputFile <- args[7]
+config
 
 print("Importing libraries.")
 library(ggplot2)
@@ -21,25 +30,42 @@ library(ggrepel)
 library(reshape2)
 library(readr)
 library(rjson)
+library(RPostgreSQL)
 
-config <- fromJSON(file = args[1])
-config
+buildsToShow <- config[db_table]["builds_to_show"]
 
-outputFile <- args[3]
+# SQL Initialization
+print("Initializing SQL")
+con <- dbConnect(dbDriver("PostgreSQL"),
+                 dbname = "onostest",
+                 host = db_host,
+                 port = strtoi(db_port),
+                 user = db_user,
+                 password = db_pass)
 
-# Get list of files from data directory
-fileList <- list.files(path=args[2], pattern="*.csv")
-data <-
-  do.call("rbind",
-          lapply(fileList,
-                 function(x)
-                 read.csv(paste(args[2], x, sep=''),
-                 stringsAsFactors = FALSE)))
+# SQL Command
+print("Generating SQL command.")
+sqlCommand <- paste("SELECT * FROM ",
+                    db_table,
+                    "' ORDER BY build DESC ",
+                    if (buildsToShow > 0) "LIMIT " else "",
+                    if (buildsToShow > 0) buildsToShow else "",
+                    sep="")
 
-# Use only latest x data determined from config file.
-usableData <- tail(data, config$builds_to_show)
+print("Sending SQL command:")
+print(sqlCommand)
+
+command <- simpleSQLCommand(args[graph_title], args[branch_name], args[buildsToShow])
+usableData <- dbGetQuery(con, sqlCommand)
+
+# Check if data has been received
+if (nrow(usableData) == 0){
+    print("[ERROR]: No data received from the databases. Please double check this by manually running the SQL command.")
+    quit(status = 1)
+}
 
 usableData <- usableData[order(usableData$build),]
+print(usableData)
 
 # **********************************************************
 # STEP 2: Organize data.
@@ -114,11 +140,11 @@ yScaleConfig <- scale_y_continuous( breaks = seq( 0, max( dataFrame$planned_case
                                    by = ceiling( max( dataFrame$planned_cases ) / 10 ) ) )
 
 # Axis labels
-xLabel <- xlab(config$x_axis_title)
-yLabel <- ylab(config$y_axis_title)
+xLabel <- xlab(config[db_table]["x_axis_title"])
+yLabel <- ylab(config[db_table]["y_axis_title"])
 
 # Title of plot
-title <- labs( title = config$graph_title, subtitle = paste( "Last Updated: ", format( Sys.time(), "%b %d, %Y at %I:%M %p %Z" ), sep="" ) )
+title <- labs( title = config[db_table]["graph_title"], subtitle = paste( "Last Updated: ", format( Sys.time(), "%b %d, %Y at %I:%M %p %Z" ), sep="" ) )
 
 # Other theme options
 theme <- theme( plot.title = element_text( hjust = 0.5, size = 32, face ='bold' ),

@@ -32,7 +32,7 @@ db_table <- args[6]
 outputDirectory <- args[7]
 config
 
-buildsToShow <- config[db_table]["builds_to_show"]
+buildsToShow <- config[[db_table]]$builds_to_show
 
 # SQL Initialization
 print("Initializing SQL")
@@ -242,8 +242,8 @@ yScaleConfig <- scale_y_log10( breaks = yAxisTicks,
                                labels = yAxisTicksLabels )
 
 # Axis labels
-xLabel <- xlab(config[[db_table]]$x_axis_title])
-yLabel <- ylab(config[[db_table]]$y_axis_title])
+xLabel <- xlab(config[[db_table]]$x_axis_title)
+yLabel <- ylab(config[[db_table]]$y_axis_title)
 
 # Title of plot
 title <- labs( title = paste(config[[db_table]]$graph_title, "Attach Results"), subtitle = paste( "Last Updated: ", format( Sys.time(), "%b %d, %Y at %I:%M %p %Z" ), sep="" ) )

@@ -1,41 +1,35 @@
 {
-  "sd_core_manual_scale_data_ci_5g": {
-    "graph_title" : "SD-Core CI 5G Scale Testing",
-    "x_axis_title" : "Build #",
-    "y_axis_title" : "UEs",
-    "builds_to_show" : 15
-  },
-  "sd_core_perf": {
+  "perf": {
     "graph_title" : "SD-Core Performance Testing",
     "x_axis_title" : "Build #",
     "y_axis_title" : "UEs",
     "builds_to_show" : 15
   },
-  "sd_core_scale_data_ci_4g": {
+  "ci-4g": {
     "graph_title" : "SD-Core CI 4G Scale Testing",
     "x_axis_title" : "Build #",
     "y_axis_title" : "UEs",
     "builds_to_show" : 15
   },
-  "sd_core_scale_data_ci_5g": {
+  "ci-5g": {
     "graph_title" : "SD-Core CI 5G Scale Testing",
     "x_axis_title" : "Build #",
     "y_axis_title" : "UEs",
     "builds_to_show" : 15
   },
-  "sd_core_scale_data_menlo_prod": {
+  "menlo-prod": {
     "graph_title" : "SD-Core Scale Testing - Production Pod",
     "x_axis_title" : "Build #",
     "y_axis_title" : "UEs",
     "builds_to_show" : 15
   },
-  "sd_core_scale_data_qa": {
+  "qa": {
     "graph_title" : "SD-Core Scale Testing - QA Pod",
     "x_axis_title" : "Build #",
     "y_axis_title" : "UEs",
     "builds_to_show" : 15
   },
-  "sd_core_scale_data_staging": {
+  "staging": {
     "graph_title" : "SD-Core Scale Testing - Staging Pod",
     "x_axis_title" : "Build #",
     "y_axis_title" : "UEs",

@@ -34,7 +34,7 @@ is_manual <- args[8]
 outputFile <- args[9]
 config
 
-buildsToShow <- config[[db_table]]$builds_to_show
+buildsToShow <- config[[pod]]$builds_to_show
 
 # SQL Initialization
 print("Initializing SQL")
@@ -49,10 +49,10 @@ con <- dbConnect(dbDriver("PostgreSQL"),
 print("Generating SQL command.")
 sqlCommand <- paste("SELECT * FROM ",
                     db_table,
-                    "WHERE pod = '",
+                    " WHERE pod = '",
                     pod,
                     "' AND is_manual = ",
-                    is_manual
+                    is_manual,
                     " ORDER BY build DESC ",
                     if (buildsToShow > 0) "LIMIT " else "",
                     if (buildsToShow > 0) buildsToShow else "",

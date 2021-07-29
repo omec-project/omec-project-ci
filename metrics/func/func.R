@@ -145,11 +145,11 @@ yScaleConfig <- scale_y_continuous( breaks = seq( 0, max( dataFrame$planned_case
                                    by = ceiling( max( dataFrame$planned_cases ) / 10 ) ) )
 
 # Axis labels
-xLabel <- xlab(config[[db_table]]$x_axis_title)
-yLabel <- ylab(config[[db_table]]$y_axis_title)
+xLabel <- xlab(config[[pod]]$x_axis_title)
+yLabel <- ylab(config[[pod]]$y_axis_title)
 
 # Title of plot
-title <- labs( title = config[[db_table]]$graph_title, subtitle = paste( "Last Updated: ", format( Sys.time(), "%b %d, %Y at %I:%M %p %Z" ), sep="" ) )
+title <- labs( title = config[[pod]]$graph_title, subtitle = paste( "Last Updated: ", format( Sys.time(), "%b %d, %Y at %I:%M %p %Z" ), sep="" ) )
 
 # Other theme options
 theme <- theme( plot.title = element_text( hjust = 0.5, size = 32, face ='bold' ),

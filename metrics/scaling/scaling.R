@@ -15,15 +15,6 @@ if (length(args) < 7){
     q(status=1)
 }
 
-config <- fromJSON(file = args[1])
-db_host <- args[2]
-db_port <- args[3]
-db_user <- args[4]
-db_pass <- args[5]
-db_table <- args[6]
-outputFile <- args[7]
-config
-
 print("Importing libraries.")
 library(ggplot2)
 library(ggrepel)
@@ -31,6 +22,15 @@ library(reshape2)
 library(readr)
 library(rjson)
 library(RPostgreSQL)
+
+config <- fromJSON(file = args[1])
+db_host <- args[2]
+db_port <- args[3]
+db_user <- args[4]
+db_pass <- args[5]
+db_table <- args[6]
+outputDirectory <- args[7]
+config
 
 buildsToShow <- config[db_table]["builds_to_show"]
 
@@ -47,7 +47,7 @@ con <- dbConnect(dbDriver("PostgreSQL"),
 print("Generating SQL command.")
 sqlCommand <- paste("SELECT * FROM ",
                     db_table,
-                    "' ORDER BY build DESC ",
+                    " ORDER BY build DESC ",
                     if (buildsToShow > 0) "LIMIT " else "",
                     if (buildsToShow > 0) buildsToShow else "",
                     sep="")
@@ -55,7 +55,6 @@ sqlCommand <- paste("SELECT * FROM ",
 print("Sending SQL command:")
 print(sqlCommand)
 
-command <- simpleSQLCommand(args[graph_title], args[branch_name], args[buildsToShow])
 usableData <- dbGetQuery(con, sqlCommand)
 
 # Use only latest x data determined from config file.
@@ -243,11 +242,11 @@ yScaleConfig <- scale_y_log10( breaks = yAxisTicks,
                                labels = yAxisTicksLabels )
 
 # Axis labels
-xLabel <- xlab(config[db_table]["x_axis_title"])
-yLabel <- ylab(config[db_table]["y_axis_title"])
+xLabel <- xlab(config[[db_table]]$x_axis_title])
+yLabel <- ylab(config[[db_table]]$y_axis_title])
 
 # Title of plot
-title <- labs( title = paste(config[db_table]["graph_title"], "Attach Results"), subtitle = paste( "Last Updated: ", format( Sys.time(), "%b %d, %Y at %I:%M %p %Z" ), sep="" ) )
+title <- labs( title = paste(config[[db_table]]$graph_title, "Attach Results"), subtitle = paste( "Last Updated: ", format( Sys.time(), "%b %d, %Y at %I:%M %p %Z" ), sep="" ) )
 
 # Other theme options
 theme <- theme( plot.title = element_text( hjust = 0.5, size = 32, face ='bold' ),
@@ -310,7 +309,7 @@ ggsave( paste(outputDirectory, "/attach.png", sep=""),
 print("Success for Attach")
 
 # Title of plot for Detach
-title <- labs( title = paste(config$graph_title, "Detach Results"), subtitle = paste( "Last Updated: ", format( Sys.time(), "%b %d, %Y at %I:%M %p %Z" ), sep="" ) )
+title <- labs( title = paste(config[[db_table]]$graph_title, "Detach Results"), subtitle = paste( "Last Updated: ", format( Sys.time(), "%b %d, %Y at %I:%M %p %Z" ), sep="" ) )
 
 # Colors for the lines for Detach
 lineColors <- scale_color_manual( labels = c( "Total UEs",
@@ -349,7 +348,7 @@ ggsave( paste(outputDirectory, "/detach.png", sep=""),
 print("Success for Detach")
 
 # Title of plot for Ping
-title <- labs( title = paste(config$graph_title, "Ping Results"), subtitle = paste( "Last Updated: ", format( Sys.time(), "%b %d, %Y at %I:%M %p %Z" ), sep="" ) )
+title <- labs( title = paste(config[[db_table]]$graph_title, "Ping Results"), subtitle = paste( "Last Updated: ", format( Sys.time(), "%b %d, %Y at %I:%M %p %Z" ), sep="" ) )
 
 # Colors for the lines for Ping
 lineColors <- scale_color_manual( labels = c( "Total UEs",

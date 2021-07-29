@@ -15,6 +15,14 @@ if (length(args) < 7){
     q(status=1)
 }
 
+print("Importing libraries.")
+library(ggplot2)
+library(ggrepel)
+library(reshape2)
+library(readr)
+library(rjson)
+library(RPostgreSQL)
+
 config <- fromJSON(file = args[1])
 db_host <- args[2]
 db_port <- args[3]
@@ -24,15 +32,7 @@ db_table <- args[6]
 outputFile <- args[7]
 config
 
-print("Importing libraries.")
-library(ggplot2)
-library(ggrepel)
-library(reshape2)
-library(readr)
-library(rjson)
-library(RPostgreSQL)
-
-buildsToShow <- config[db_table]["builds_to_show"]
+buildsToShow <- config[[db_table]]$builds_to_show
 
 # SQL Initialization
 print("Initializing SQL")
@@ -47,7 +47,7 @@ con <- dbConnect(dbDriver("PostgreSQL"),
 print("Generating SQL command.")
 sqlCommand <- paste("SELECT * FROM ",
                     db_table,
-                    "' ORDER BY build DESC ",
+                    " ORDER BY build DESC ",
                     if (buildsToShow > 0) "LIMIT " else "",
                     if (buildsToShow > 0) buildsToShow else "",
                     sep="")
@@ -55,7 +55,6 @@ sqlCommand <- paste("SELECT * FROM ",
 print("Sending SQL command:")
 print(sqlCommand)
 
-command <- simpleSQLCommand(args[graph_title], args[branch_name], args[buildsToShow])
 usableData <- dbGetQuery(con, sqlCommand)
 
 # Check if data has been received
@@ -140,11 +139,11 @@ yScaleConfig <- scale_y_continuous( breaks = seq( 0, max( dataFrame$planned_case
                                    by = ceiling( max( dataFrame$planned_cases ) / 10 ) ) )
 
 # Axis labels
-xLabel <- xlab(config[db_table]["x_axis_title"])
-yLabel <- ylab(config[db_table]["y_axis_title"])
+xLabel <- xlab(config[[db_table]]$x_axis_title])
+yLabel <- ylab(config[[db_table]]$y_axis_title])
 
 # Title of plot
-title <- labs( title = config[db_table]["graph_title"], subtitle = paste( "Last Updated: ", format( Sys.time(), "%b %d, %Y at %I:%M %p %Z" ), sep="" ) )
+title <- labs( title = config[[db_table]]$graph_title, subtitle = paste( "Last Updated: ", format( Sys.time(), "%b %d, %Y at %I:%M %p %Z" ), sep="" ) )
 
 # Other theme options
 theme <- theme( plot.title = element_text( hjust = 0.5, size = 32, face ='bold' ),

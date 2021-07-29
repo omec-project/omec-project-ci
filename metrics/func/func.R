@@ -10,8 +10,8 @@ print( "**********************************************************" )
 print( "Reading commmand-line args." )
 args <- commandArgs(trailingOnly=TRUE)
 
-if (length(args) < 7){
-    print("Usage: Rscript trend.R <config-file> <db_host> <db_port> <db_user> <db_pass> <db_table> <output-path-filename>")
+if (length(args) < 9){
+    print("Usage: Rscript trend.R <config-file> <db_host> <db_port> <db_user> <db_pass> <db_table> <pod> <is_manual> <output-path-filename>")
     q(status=1)
 }
 
@@ -29,7 +29,9 @@ db_port <- args[3]
 db_user <- args[4]
 db_pass <- args[5]
 db_table <- args[6]
-outputFile <- args[7]
+pod <- args[7]
+is_manual <- args[8]
+outputFile <- args[9]
 config
 
 buildsToShow <- config[[db_table]]$builds_to_show
@@ -47,6 +49,10 @@ con <- dbConnect(dbDriver("PostgreSQL"),
 print("Generating SQL command.")
 sqlCommand <- paste("SELECT * FROM ",
                     db_table,
+                    "WHERE pod = '",
+                    pod,
+                    "' AND is_manual = ",
+                    is_manual
                     " ORDER BY build DESC ",
                     if (buildsToShow > 0) "LIMIT " else "",
                     if (buildsToShow > 0) buildsToShow else "",

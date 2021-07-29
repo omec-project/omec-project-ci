@@ -1,6 +1,38 @@
 {
-    "graph_title" : "NG40 Scaling",
+  "perf": {
+    "graph_title" : "SD-Core Performance Testing",
     "x_axis_title" : "Build #",
-    "y_axis_title" : "Number of UEs",
+    "y_axis_title" : "UEs",
     "builds_to_show" : 15
+  },
+  "ci-4g": {
+    "graph_title" : "SD-Core CI 4G Scale Testing",
+    "x_axis_title" : "Build #",
+    "y_axis_title" : "UEs",
+    "builds_to_show" : 15
+  },
+  "ci-5g": {
+    "graph_title" : "SD-Core CI 5G Scale Testing",
+    "x_axis_title" : "Build #",
+    "y_axis_title" : "UEs",
+    "builds_to_show" : 15
+  },
+  "menlo-prod": {
+    "graph_title" : "SD-Core Scale Testing - Production Pod",
+    "x_axis_title" : "Build #",
+    "y_axis_title" : "UEs",
+    "builds_to_show" : 15
+  },
+  "qa": {
+    "graph_title" : "SD-Core Scale Testing - QA Pod",
+    "x_axis_title" : "Build #",
+    "y_axis_title" : "UEs",
+    "builds_to_show" : 15
+  },
+  "staging": {
+    "graph_title" : "SD-Core Scale Testing - Staging Pod",
+    "x_axis_title" : "Build #",
+    "y_axis_title" : "UEs",
+    "builds_to_show" : 15
+  }
 }

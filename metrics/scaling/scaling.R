@@ -10,8 +10,8 @@ print( "**********************************************************" )
 print( "Reading commmand-line args." )
 args <- commandArgs(trailingOnly=TRUE)
 
-if (length(args) < 3){
-    print("Usage: Rscript trend.R <config-file> <data-file-directory> <output-path-directory>")
+if (length(args) < 9){
+    print("Usage: Rscript trend.R <config-file> <db_host> <db_port> <db_user> <db_pass> <db_table> <pod> <is_manual> <output-path-filename>")
     q(status=1)
 }
 
@@ -21,23 +21,55 @@ library(ggrepel)
 library(reshape2)
 library(readr)
 library(rjson)
+library(RPostgreSQL)
 
 config <- fromJSON(file = args[1])
+db_host <- args[2]
+db_port <- args[3]
+db_user <- args[4]
+db_pass <- args[5]
+db_table <- args[6]
+pod <- args[7]
+is_manual <- args[8]
+outputDirectory <- args[9]
 config
 
-outputDirectory <- args[3]
+buildsToShow <- config[[pod]]$builds_to_show
 
-# Get list of files from data directory
-fileList <- list.files(path=args[2], pattern="*.csv")
-data <-
-  do.call("rbind",
-          lapply(fileList,
-                 function(x)
-                 read.csv(paste(args[2], x, sep=''),
-                 stringsAsFactors = FALSE)))
+# SQL Initialization
+print("Initializing SQL")
+con <- dbConnect(dbDriver("PostgreSQL"),
+                 dbname = "onostest",
+                 host = db_host,
+                 port = strtoi(db_port),
+                 user = db_user,
+                 password = db_pass)
+
+# SQL Command
+print("Generating SQL command.")
+sqlCommand <- paste("SELECT * FROM ",
+                    db_table,
+                    " WHERE pod = '",
+                    pod,
+                    "' AND is_manual = ",
+                    is_manual,
+                    " ORDER BY build DESC ",
+                    if (buildsToShow > 0) "LIMIT " else "",
+                    if (buildsToShow > 0) buildsToShow else "",
+                    sep="")
+
+print("Sending SQL command:")
+print(sqlCommand)
+
+usableData <- dbGetQuery(con, sqlCommand)
+
+# Check if data has been received
+if (nrow(usableData) == 0){
+    print("[ERROR]: No data received from the databases. Please double check this by manually running the SQL command.")
+    quit(status = 1)
+}
 
 # Use only latest x data determined from config file.
-usableData <- tail(data, config$builds_to_show)
 usableData$total_ues_attach <- floor(usableData$successful_attach + usableData$failed_attach)
 usableData$total_ues_detach <- floor(usableData$successful_detach + usableData$failed_detach)
 usableData$total_ues_ping <- floor(usableData$successful_ping + usableData$failed_ping)
@@ -222,11 +254,11 @@ yScaleConfig <- scale_y_log10( breaks = yAxisTicks,
                                labels = yAxisTicksLabels )
 
 # Axis labels
-xLabel <- xlab(config$x_axis_title)
-yLabel <- ylab(config$y_axis_title)
+xLabel <- xlab(config[[pod]]$x_axis_title)
+yLabel <- ylab(config[[pod]]$y_axis_title)
 
 # Title of plot
-title <- labs( title = paste(config$graph_title, "Attach Results"), subtitle = paste( "Last Updated: ", format( Sys.time(), "%b %d, %Y at %I:%M %p %Z" ), sep="" ) )
+title <- labs( title = paste(config[[pod]]$graph_title, "Attach Results"), subtitle = paste( "Last Updated: ", format( Sys.time(), "%b %d, %Y at %I:%M %p %Z" ), sep="" ) )
 
 # Other theme options
 theme <- theme( plot.title = element_text( hjust = 0.5, size = 32, face ='bold' ),
@@ -289,7 +321,7 @@ ggsave( paste(outputDirectory, "/attach.png", sep=""),
 print("Success for Attach")
 
 # Title of plot for Detach
-title <- labs( title = paste(config$graph_title, "Detach Results"), subtitle = paste( "Last Updated: ", format( Sys.time(), "%b %d, %Y at %I:%M %p %Z" ), sep="" ) )
+title <- labs( title = paste(config[[pod]]$graph_title, "Detach Results"), subtitle = paste( "Last Updated: ", format( Sys.time(), "%b %d, %Y at %I:%M %p %Z" ), sep="" ) )
 
 # Colors for the lines for Detach
 lineColors <- scale_color_manual( labels = c( "Total UEs",
@@ -328,7 +360,7 @@ ggsave( paste(outputDirectory, "/detach.png", sep=""),
 print("Success for Detach")
 
 # Title of plot for Ping
-title <- labs( title = paste(config$graph_title, "Ping Results"), subtitle = paste( "Last Updated: ", format( Sys.time(), "%b %d, %Y at %I:%M %p %Z" ), sep="" ) )
+title <- labs( title = paste(config[[pod]]$graph_title, "Ping Results"), subtitle = paste( "Last Updated: ", format( Sys.time(), "%b %d, %Y at %I:%M %p %Z" ), sep="" ) )
 
 # Colors for the lines for Ping
 lineColors <- scale_color_manual( labels = c( "Total UEs",

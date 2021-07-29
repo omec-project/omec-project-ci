@@ -1,6 +1,32 @@
 {
-    "graph_title" : "NG40 Functionality Testing",
+  "ci-4g": {
+    "graph_title" : "SD-Core CI 4G Functionality Testing",
     "x_axis_title" : "Build #",
     "y_axis_title" : "Test Cases",
     "builds_to_show" : 15
+  },
+  "ci-5g": {
+    "graph_title" : "SD-Core CI 5G Functionality Testing",
+    "x_axis_title" : "Build #",
+    "y_axis_title" : "Test Cases",
+    "builds_to_show" : 15
+  },
+  "menlo-prod": {
+    "graph_title" : "SD-Core Functionality Testing - Production Pod",
+    "x_axis_title" : "Build #",
+    "y_axis_title" : "Test Cases",
+    "builds_to_show" : 15
+  },
+  "qa": {
+    "graph_title" : "SD-Core Functionality Testing - QA Pod",
+    "x_axis_title" : "Build #",
+    "y_axis_title" : "Test Cases",
+    "builds_to_show" : 15
+  },
+  "staging": {
+    "graph_title" : "SD-Core Functionality Testing - Staging Pod",
+    "x_axis_title" : "Build #",
+    "y_axis_title" : "Test Cases",
+    "builds_to_show" : 15
+  }
 }

@@ -53,7 +53,7 @@ sqlCommand <- paste("SELECT * FROM ",
                     pod,
                     "' AND is_manual = ",
                     is_manual,
-                    " ORDER BY build DESC ",
+                    " ORDER BY time DESC ",
                     if (buildsToShow > 0) "LIMIT " else "",
                     if (buildsToShow > 0) buildsToShow else "",
                     sep="")
@@ -87,7 +87,7 @@ for (i in 1:nrow(usableData)) {
     }
 }
 
-usableData <- usableData[order(usableData$build),]
+usableData <- usableData[order(usableData$time),]
 
 # **********************************************************
 # STEP 2: Organize data.

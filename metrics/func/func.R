@@ -53,7 +53,7 @@ sqlCommand <- paste("SELECT * FROM ",
                     pod,
                     "' AND is_manual = ",
                     is_manual,
-                    " ORDER BY build DESC ",
+                    " ORDER BY time DESC ",
                     if (buildsToShow > 0) "LIMIT " else "",
                     if (buildsToShow > 0) buildsToShow else "",
                     sep="")
@@ -69,7 +69,7 @@ if (nrow(usableData) == 0){
     quit(status = 1)
 }
 
-usableData <- usableData[order(usableData$build),]
+usableData <- usableData[order(usableData$time),]
 print(usableData)
 
 # **********************************************************

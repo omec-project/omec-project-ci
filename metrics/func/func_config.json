@@ -17,6 +17,12 @@
     "y_axis_title" : "Test Cases",
     "builds_to_show" : 15
   },
+  "menlo-prod-anthos": {
+    "graph_title" : "SD-Core Functionality Testing - Anthos Pod",
+    "x_axis_title" : "Build #",
+    "y_axis_title" : "Test Cases",
+    "builds_to_show" : 15
+  },
   "qa": {
     "graph_title" : "SD-Core Functionality Testing - QA Pod",
     "x_axis_title" : "Build #",

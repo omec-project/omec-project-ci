@@ -40,5 +40,11 @@
     "x_axis_title" : "Build #",
     "y_axis_title" : "UEs",
     "builds_to_show" : 15
+  },
+  "dev-sdfabric": {
+    "graph_title" : "SD-Core Scale Testing - SD-Fabric Dev Pod",
+    "x_axis_title" : "Build #",
+    "y_axis_title" : "UEs",
+    "builds_to_show" : 15
   }
 }
